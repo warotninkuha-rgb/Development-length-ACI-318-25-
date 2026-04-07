@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>โปรแกรมคำนวณระยะฝังและระยะทาบเหล็ก (ACI 318)</title>
+    
+    <!-- PWA: Add to Home Screen Meta Tags & Icon -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RebarCalc">
+    <meta name="theme-color" content="#1e3a8a">
+    
+    <!-- ฝังไอคอน SVG ที่จำลองจากรูป 3D -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20fill%3D%22%231e3a8a%22%2F%3E%3Cpath%20d%3D%22M%20250%20450%20C%20250%20320%2C%20480%20320%2C%20480%20450%20Z%22%20fill%3D%22%23eab308%22%2F%3E%3Crect%20x%3D%22230%22%20y%3D%22440%22%20width%3D%22270%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23facc15%22%2F%3E%3Cpath%20d%3D%22M%20100%20100%20L%20412%20412%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%2256%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M%20100%20100%20L%20412%20412%22%20stroke%3D%22%23475569%22%20stroke-width%3D%2256%22%20stroke-dasharray%3D%2212%2024%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M%20100%20412%20L%20412%20100%22%20stroke%3D%22%23cbd5e1%22%20stroke-width%3D%2256%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M%20100%20412%20L%20412%20100%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%2256%22%20stroke-dasharray%3D%2212%2024%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22%231e3a8a%22%2F%3E%3Cpath%20d%3D%22M%20250%20450%20C%20250%20320%2C%20480%20320%2C%20480%20450%20Z%22%20fill%3D%22%23eab308%22%2F%3E%3Crect%20x%3D%22230%22%20y%3D%22440%22%20width%3D%22270%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23facc15%22%2F%3E%3Cpath%20d%3D%22M%20100%20100%20L%20412%20412%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%2256%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M%20100%20100%20L%20412%20412%22%20stroke%3D%22%23475569%22%20stroke-width%3D%2256%22%20stroke-dasharray%3D%2212%2024%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M%20100%20412%20L%20412%20100%22%20stroke%3D%22%23cbd5e1%22%20stroke-width%3D%2256%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M%20100%20412%20L%20412%20100%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%2256%22%20stroke-dasharray%3D%2212%2024%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%0A%20%20%22name%22%3A%20%22Rebar%20Calc%20%28ACI%20318%29%22%2C%0A%20%20%22short_name%22%3A%20%22RebarCalc%22%2C%0A%20%20%22start_url%22%3A%20%22.%22%2C%0A%20%20%22display%22%3A%20%22standalone%22%2C%0A%20%20%22background_color%22%3A%20%22%23f8fafc%22%2C%0A%20%20%22theme_color%22%3A%20%22%231e3a8a%22%2C%0A%20%20%22icons%22%3A%20%5B%0A%20%20%20%20%7B%0A%20%20%20%20%20%20%22src%22%3A%20%22data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%2C%253Csvg%2520xmlns%253D%2522http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2522%2520viewBox%253D%25220%25200%2520512%2520512%2522%253E%253Crect%2520width%253D%2522512%2522%2520height%253D%2522512%2522%2520rx%253D%2522112%2522%2520fill%253D%2522%25231e3a8a%2522%252F%253E%253Cpath%2520d%253D%2522M%2520250%2520450%2520C%2520250%2520320%252C%2520480%2520320%252C%2520480%2520450%2520Z%2522%2520fill%253D%2522%2523eab308%2522%252F%253E%253Crect%2520x%253D%2522230%2522%2520y%253D%2522440%2522%2520width%253D%2522270%2522%2520height%253D%252216%2522%2520rx%253D%25228%2522%2520fill%253D%2522%2523facc15%2522%252F%253E%253Cpath%2520d%253D%2522M%2520100%2520100%2520L%2520412%2520412%2522%2520stroke%253D%2522%252394a3b8%2522%2520stroke-width%253D%252256%2522%2520stroke-linecap%253D%2522round%2522%252F%253E%253Cpath%2520d%253D%2522M%2520100%2520100%2520L%2520412%2520412%2522%2520stroke%253D%2522%2523475569%2522%2520stroke-width%253D%252256%2522%2520stroke-dasharray%253D%252212%252024%2522%2520stroke-linecap%253D%2522round%2522%252F%253E%253Cpath%2520d%253D%2522M%2520100%2520412%2520L%2520412%2520100%2522%2520stroke%253D%2522%2523cbd5e1%2522%2520stroke-width%253D%252256%2522%2520stroke-linecap%253D%2522round%2522%252F%253E%253Cpath%2520d%253D%2522M%2520100%2520412%2520L%2520412%2520100%2522%2520stroke%253D%2522%252364748b%2522%2520stroke-width%253D%252256%2522%2520stroke-dasharray%253D%252212%252024%2522%2520stroke-linecap%253D%2522round%2522%252F%253E%253C%252Fsvg%253E%22%2C%0A%20%20%20%20%20%20%22sizes%22%3A%20%22512x512%22%2C%0A%20%20%20%20%20%20%22type%22%3A%20%22image%2Fsvg%2Bxml%22%2C%0A%20%20%20%20%20%20%22purpose%22%3A%20%22any%20maskable%22%0A%20%20%20%20%7D%0A%20%20%5D%0A%7D">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .tab-active { border-bottom-color: #2563eb; color: #1e40af; background-color: #eff6ff; }
+        .tab-inactive { border-bottom-color: transparent; color: #64748b; }
+        .tab-inactive:hover { background-color: #f8fafc; color: #475569; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        const REBAR_DATA = {
+            "10": { db: 10, psis_ldh: 1.0, psis_ld: 0.8 },
+            "12": { db: 12, psis_ldh: 1.0, psis_ld: 0.8 },
+            "16": { db: 16, psis_ldh: 1.0, psis_ld: 0.8 },
+            "20": { db: 20, psis_ldh: 1.0, psis_ld: 0.8 },
+            "25": { db: 25, psis_ldh: 1.0, psis_ld: 1.0 },
+            "28": { db: 28, psis_ldh: 1.0, psis_ld: 1.0 },
+            "32": { db: 32, psis_ldh: 1.15, psis_ld: 1.0 },
+            "36": { db: 36, psis_ldh: 1.15, psis_ld: 1.0 },
+            "40": { db: 40, psis_ldh: 1.3, psis_ld: 1.0 },
+            "50": { db: 50, psis_ldh: 1.5, psis_ld: 1.0 }
+        };
+
+        const Icons = {
+            Settings: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
+            Info: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>,
+            Book: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+            HelpCircle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
+            ShareIOS: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>,
+            DotsAndroid: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>,
+            Hook: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 18a4.6 4.4 0 0 1 0-9h10a4.5 4.5 0 0 1 0 9h-2"></path><polyline points="12 21 9 18 12 15"></polyline></svg>
+        };
+
+        // App Icon Component
+        const AppIconVector = ({ className = "w-12 h-12" }) => (
+            <svg className={className} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="512" height="512" rx="112" fill="#1e3a8a"/>
+                <path d="M 250 450 C 250 320, 480 320, 480 450 Z" fill="#eab308"/>
+                <rect x="230" y="440" width="270" height="16" rx="8" fill="#facc15"/>
+                <path d="M 100 100 L 412 412" stroke="#94a3b8" strokeWidth="56" strokeLinecap="round"/>
+                <path d="M 100 100 L 412 412" stroke="#475569" strokeWidth="56" strokeDasharray="12 24" strokeLinecap="round"/>
+                <path d="M 100 412 L 412 100" stroke="#cbd5e1" strokeWidth="56" strokeLinecap="round"/>
+                <path d="M 100 412 L 412 100" stroke="#64748b" strokeWidth="56" strokeDasharray="12 24" strokeLinecap="round"/>
+            </svg>
+        );
+
+        // --- Minimal Rebar Component for Splice Diagrams ---
+        const RebarLine = ({ x1, x2, y, color }) => {
+            const ribs = [];
+            for (let x = x1 + 12; x <= x2 - 12; x += 14) {
+                ribs.push(<path key={x} d={`M${x} ${y-6} V${y+6}`} stroke={color} strokeWidth="2.5" strokeLinecap="round" />);
+            }
+            return (
+                <g>
+                    <path d={`M${x1} ${y} H${x2}`} stroke={color} strokeWidth="12" strokeLinecap="round"/>
+                    {ribs}
+                </g>
+            );
+        };
+
+        // UI Helpers สำหรับสมการ
+        const EquationFraction = ({ title, symbol, topFormula, bottomFormula, multiplierText, topValues, bottomValues, multiplierValue, result, reference }) => (
+            <div className="mb-4">
+                <div className="font-semibold text-slate-800 mb-2">
+                    {title} {reference && <span className="text-sm font-normal text-slate-400 ml-1">({reference})</span>}
+                </div>
+                <div className="bg-white p-4 rounded-lg flex flex-col items-center justify-center font-mono overflow-x-auto text-sm md:text-base border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-4 whitespace-nowrap">
+                        <span>{symbol} = </span>
+                        <div className="flex flex-col items-center">
+                            <span className="border-b border-slate-800 px-2 pb-1">{topFormula}</span>
+                            <span className="pt-1">{bottomFormula}</span>
+                        </div>
+                        {multiplierText && <span>× {multiplierText}</span>}
+                    </div>
+                    <div className="text-slate-300 my-2">▼</div>
+                    <div className="flex items-center gap-4 whitespace-nowrap">
+                        <span>{symbol} = </span>
+                        <div className="flex flex-col items-center">
+                            <span className="border-b border-slate-800 px-2 pb-1">{topValues}</span>
+                            <span className="pt-1">{bottomValues}</span>
+                        </div>
+                        {multiplierValue && <span>× {multiplierValue}</span>}
+                    </div>
+                    <div className="mt-4 font-bold text-blue-700 text-xl md:text-2xl">
+                        = {isNaN(result) ? "0.00" : result.toFixed(2)} มม.
+                    </div>
+                </div>
+            </div>
+        );
+
+        const EquationFlat = ({ title, symbol, formula, values, result, highlight, reference }) => (
+            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between h-full">
+                <div>
+                    <div className="font-semibold text-slate-800 mb-2">
+                        {title} {reference && <span className="text-sm font-normal text-slate-400 ml-1">({reference})</span>}
+                    </div>
+                    <div className="font-mono text-lg">{symbol} = {formula}</div>
+                    {values && <div className="font-mono text-slate-500 mt-1">{symbol} = {values}</div>}
+                </div>
+                <div className={`mt-4 font-bold text-xl ${highlight ? 'text-blue-700' : 'text-slate-800'}`}>
+                    = {isNaN(result) ? "0.00" : result.toFixed(2)} มม.
+                </div>
+            </div>
+        );
+
+        const VarSummary = ({ children }) => (
+            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mt-6 mb-6 font-mono text-sm overflow-x-auto">
+                <div className="mb-2 font-bold text-blue-900">สรุปตัวแปรที่ใช้:</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-blue-800">
+                    {children}
+                </div>
+            </div>
+        );
+
+        function MasterCalculator() {
+            const [showInstallBanner, setShowInstallBanner] = useState(true);
+
+            useEffect(() => {
+                if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+                    setShowInstallBanner(false);
+                } else if (window.navigator.standalone === true) {
+                    setShowInstallBanner(false);
+                }
+            }, []);
+
+            // Global State
+            const [activeTab, setActiveTab] = useState("var_info");
+            const [fy, setFy] = useState(4000); 
+            const [fc, setFc] = useState(240);  
+            const [barSize, setBarSize] = useState("12"); 
+            const [isLightweight, setIsLightweight] = useState(false);
+            
+            // Ldh Specific State
+            const [isEpoxy, setIsEpoxy] = useState(false);
+            const [hasCoverCond, setHasCoverCond] = useState(false);
+            const [hasConfiningLdh, setHasConfiningLdh] = useState(false);
+
+            // Ld Specific State
+            const [isTopBar, setIsTopBar] = useState(false);
+            const [clearCover, setClearCover] = useState(40);
+            const [clearSpacing, setClearSpacing] = useState(40);
+            const [useKtr, setUseKtr] = useState(false);
+            const [atrSize, setAtrSize] = useState("10");
+            const [atrLegs, setAtrLegs] = useState(2);
+            const [sTie, setSTie] = useState(150);
+            const [nBars, setNBars] = useState(3);
+
+            // Ldc Specific State
+            const [hasConfiningLdc, setHasConfiningLdc] = useState(false);
+
+            // Lst Specific State
+            const [spliceClass, setSpliceClass] = useState("B");
+
+            // Lsc Specific State
+            const [lscConfine, setLscConfine] = useState("1.0");
+
+            // Shared Computations
+            const db = REBAR_DATA[barSize].db;
+            const lambda = isLightweight ? 0.75 : 1.0;
+            const numFy = parseFloat(fy) || 0;
+            const numFc = parseFloat(fc) || 0;
+            const isFcLimited = numFc > 700;
+            const effectiveFc = isFcLimited ? 700 : numFc;
+            const sqrtFcLimit = Math.sqrt(effectiveFc);
+            const isSmallBarLdh = db <= 36;
+
+            const calcLdh = useMemo(() => {
+                const psie = isEpoxy ? 1.2 : 1.0;
+                const psis = REBAR_DATA[barSize].psis_ldh;
+                const psicc = (hasCoverCond && isSmallBarLdh) ? 0.7 : 1.0;
+                const psir = (hasConfiningLdh && isSmallBarLdh) ? 0.8 : 1.0;
+                const ldh1 = (0.075 * numFy * psie * psis * psicc * psir * db) / (lambda * sqrtFcLimit);
+                const ldh2 = 8 * db;
+                const ldh3 = 150.0;
+                return { ldh1, ldh2, ldh3, final: Math.max(ldh1, ldh2, ldh3), psie, psis, psicc, psir };
+            }, [numFy, lambda, sqrtFcLimit, db, isEpoxy, hasCoverCond, hasConfiningLdh, isSmallBarLdh, barSize]);
+
+            const calcCbKtr = useMemo(() => {
+                const c1 = parseFloat(clearCover) + (db / 2);
+                const c2 = (parseFloat(clearSpacing) / 2) + (db / 2);
+                const cb = Math.min(c1, c2);
+                let ktr = 0;
+                let atrArea = 0;
+                if (useKtr) {
+                    const atrDb = REBAR_DATA[atrSize] ? REBAR_DATA[atrSize].db : parseFloat(atrSize);
+                    atrArea = parseFloat(atrLegs) * (Math.PI * Math.pow(atrDb, 2) / 4);
+                    ktr = (40 * atrArea) / ((parseFloat(sTie) || 1) * (parseFloat(nBars) || 1));
+                }
+                const confinementVal = (cb + ktr) / db;
+                return { c1, c2, cb, atrArea, ktr, confinementVal, confinement: Math.min(confinementVal, 2.5) };
+            }, [clearCover, clearSpacing, db, useKtr, atrSize, atrLegs, sTie, nBars]);
+
+            const calcLd = useMemo(() => {
+                const psit = isTopBar ? 1.3 : 1.0;
+                let psie = isEpoxy ? 1.5 : 1.0; 
+                if(isTopBar && isEpoxy) psie = 1.307; 
+                else if (isEpoxy) psie = 1.2;
+                const psis = REBAR_DATA[barSize].psis_ld;
+                const confinement = calcCbKtr.confinement; 
+                const ld_base = (0.285 * numFy * psit * psie * psis * db) / (lambda * sqrtFcLimit * confinement);
+                return { ld_base, final: Math.max(ld_base, 300.0), psit, psie, psis, confinement };
+            }, [numFy, lambda, sqrtFcLimit, db, isTopBar, isEpoxy, calcCbKtr.confinement, barSize]);
+
+            const calcLdc = useMemo(() => {
+                const psir = hasConfiningLdc ? 0.75 : 1.0;
+                const ldc1 = (0.075 * numFy * psir * db) / (lambda * sqrtFcLimit); 
+                const ldc2 = 0.00427 * numFy * psir * db;
+                return { ldc1, ldc2, ldc3: 200.0, final: Math.max(ldc1, ldc2, 200.0), psir };
+            }, [numFy, lambda, sqrtFcLimit, db, hasConfiningLdc]);
+
+            const calcLst = useMemo(() => {
+                const mult = spliceClass === "A" ? 1.0 : 1.3;
+                const lst_base = mult * calcLd.final;
+                return { lst_base, final: Math.max(lst_base, 300.0), mult };
+            }, [spliceClass, calcLd.final]);
+
+            const calcLsc = useMemo(() => {
+                const lsc_ksc_base = numFy <= 4280 ? (0.007 * numFy * db) : ((0.0127 * numFy - 24) * db); 
+                const fc_mod = numFc < 210 ? 1.333 : 1.0;
+                const confine_mod = parseFloat(lscConfine);
+                const lsc_1 = lsc_ksc_base * fc_mod * confine_mod;
+                return { lsc_ksc_base, fc_mod, confine_mod, lsc_1, final: Math.max(lsc_1, 300.0) };
+            }, [numFy, numFc, db, lscConfine]);
+
+            const ResultBox = ({ title, symbol, value }) => {
+            const cmValue = isNaN(value) ? 0 : value / 10;
+            return (
+                <div className="bg-blue-600 px-6 py-8 rounded-2xl shadow-lg text-white text-center mt-6 relative overflow-hidden flex flex-col items-center justify-center">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
+                    <h2 className="text-xl font-medium text-blue-100 mb-2 relative z-10">{title} ({symbol})</h2>
+                    <div className="flex items-baseline justify-center gap-3 relative z-10 mb-1">
+                        <div className="text-5xl md:text-7xl font-bold tracking-tight leading-none">{cmValue.toFixed(1)}</div>
+                        <div className="text-2xl md:text-3xl font-light text-blue-200">ซม.</div>
+                    </div>
+                    <div className="text-blue-200 text-sm relative z-10">(เท่ากับ {isNaN(value) ? "0" : value.toFixed(0)} มม.)</div>
+                </div>
+            );
+        };
+
+        const tabs = [
+            { id: "ldh", label: <span>L<sub>dh</sub> (งอรับแรงดึง)</span> },
+            { id: "ld", label: <span>L<sub>d</sub> (ตรงรับแรงดึง)</span> },
+            { id: "ldc", label: <span>L<sub>dc</sub> (ตรงรับแรงอัด)</span> },
+            { id: "lst", label: <span>L<sub>st</sub> (ทาบแรงดึง)</span> },
+            { id: "lsc", label: <span>L<sub>sc</sub> (ทาบแรงอัด)</span> },
+            { id: "var_info", label: "คู่มือ & ตัวแปร", icon: <Icons.HelpCircle/> },
+            { id: "hook_info", label: "รูปอธิบายการงอขอ", icon: <Icons.Hook/> },
+            { id: "splice_info", label: "รูปอธิบายการทาบ", icon: <Icons.Book/> }
+        ];
+
+        return (
+            <div className="min-h-screen">
+                    {/* Add to Home Screen Banner */}
+                    {showInstallBanner && (
+                        <div className="bg-blue-900 text-white p-4 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <AppIconVector className="w-12 h-12 shadow-sm rounded-xl bg-white shrink-0" />
+                                <div>
+                                    <strong className="block text-lg mb-1">เพิ่มแอปลงในหน้าจอหลัก (Home Screen)</strong>
+                                    <div className="text-blue-200 text-sm flex flex-col gap-1.5">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            สำหรับ iOS กด Share <Icons.ShareIOS/> แล้วเลือก "Add to Home Screen"
+                                        </div>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            สำหรับ Android กดเมนู <Icons.DotsAndroid/> แล้วเลือก "Add to Home screen"
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowInstallBanner(false)} className="text-blue-100 hover:text-white bg-blue-800/50 hover:bg-blue-800 border border-blue-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap shrink-0">
+                                เข้าใจแล้ว
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="py-8 px-4 max-w-5xl mx-auto space-y-6">
+                        <div className="text-center space-y-2 mb-8">
+                            <h1 className="text-3xl font-bold text-slate-800">โปรแกรมคำนวณระยะฝังและระยะทาบ (ACI 318-25)</h1>
+                            <p className="text-slate-500">หน่วย Metric (f<sub>y</sub> , f'<sub>c</sub> = ksc | ระยะ = มม. / ซม.)</p>
+                        </div>
+
+                        {/* Global Inputs */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-5">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">กำลังคราก f<sub>y</sub> (ksc)</label>
+                                <input type="number" value={fy} onChange={(e) => setFy(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">กำลังอัด f'<sub>c</sub> (ksc)</label>
+                                <input type="number" value={fc} onChange={(e) => setFc(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">ขนาดเหล็ก (DB)</label>
+                                <select value={barSize} onChange={(e) => setBarSize(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm">
+                                    {Object.keys(REBAR_DATA).map(size => (
+                                        <option key={size} value={size}>DB{size} (db={REBAR_DATA[size].db}mm)</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex flex-col justify-end pb-2">
+                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                                    <input type="checkbox" checked={isLightweight} onChange={(e) => setIsLightweight(e.target.checked)} className="w-5 h-5 text-blue-600 rounded" />
+                                    <span className="text-sm font-medium text-slate-700">คอนกรีตมวลเบา (λ=0.75)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Tabs Navigation */}
+                        <div className="flex flex-wrap gap-2 border-b border-slate-300 overflow-x-auto">
+                            {tabs.map(tab => (
+                                <button 
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-5 py-3.5 font-semibold text-sm rounded-t-xl border-b-4 transition-colors whitespace-nowrap ${activeTab === tab.id ? 'tab-active' : 'tab-inactive bg-white/50'}`}
+                                >
+                                    {tab.icon ? <span className="flex items-center gap-2">{tab.icon} {tab.label}</span> : tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tab Contents */}
+                        <div className="bg-white p-6 rounded-b-2xl rounded-tr-2xl shadow-sm border border-slate-200 border-t-0 -mt-6 pt-8">
+                            
+                            {/* Tab: Ldh */}
+                            <div className={`tab-content space-y-6 animate-fade-in ${activeTab === 'ldh' ? 'active' : ''}`}>
+                                <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2"><Icons.Settings/> เงื่อนไขตัวคูณปรับแก้ L<sub>dh</sub></h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <label className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input type="checkbox" checked={isEpoxy} onChange={(e) => setIsEpoxy(e.target.checked)} className="mt-1 w-4 h-4 text-blue-600" />
+                                        <div>
+                                            <div className="font-medium text-slate-800">เหล็กเคลือบอีพ็อกซี</div>
+                                            <div className="text-xs text-slate-500 mt-0.5">ψ<sub>e</sub> = 1.2</div>
+                                        </div>
+                                    </label>
+                                    <label className={`flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-colors ${!isSmallBarLdh ? 'opacity-50' : 'cursor-pointer hover:bg-slate-100'}`}>
+                                        <input type="checkbox" checked={hasCoverCond} onChange={(e) => setHasCoverCond(e.target.checked)} disabled={!isSmallBarLdh} className="mt-1 w-4 h-4 text-blue-600" />
+                                        <div>
+                                            <div className="font-medium text-slate-800">ระยะหุ้ม Cover ≥ 65 มม.</div>
+                                            <div className="text-xs text-slate-500 mt-0.5">ψ<sub>cc</sub> = 0.7 (เฉพาะ DB36 ลงมา)</div>
+                                        </div>
+                                    </label>
+                                    <label className={`flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-colors ${!isSmallBarLdh ? 'opacity-50' : 'cursor-pointer hover:bg-slate-100'}`}>
+                                        <input type="checkbox" checked={hasConfiningLdh} onChange={(e) => setHasConfiningLdh(e.target.checked)} disabled={!isSmallBarLdh} className="mt-1 w-4 h-4 text-blue-600" />
+                                        <div>
+                                            <div className="font-medium text-slate-800">เหล็กปลอก s ≤ 3d<sub>b</sub></div>
+                                            <div className="text-xs text-slate-500 mt-0.5">ψ<sub>r</sub> = 0.8 (เฉพาะ DB36 ลงมา)</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
+                                <VarSummary>
+                                    <div>d<sub>b</sub> = {db} mm</div>
+                                    <div>λ = {lambda}</div>
+                                    <div>ψ<sub>e</sub> = {calcLdh.psie}</div>
+                                    <div>ψ<sub>s</sub> = {calcLdh.psis}</div>
+                                    <div>ψ<sub>cc</sub> = {calcLdh.psicc}</div>
+                                    <div>ψ<sub>r</sub> = {calcLdh.psir}</div>
+                                    <div className="col-span-2">f'<sub>c</sub> = {numFc} ksc {isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
+                                </VarSummary>
+                                
+                                <EquationFraction 
+                                    title="เงื่อนไขที่ 1: คำนวณตามสมการ"
+                                    reference="ACI 318-25: 25.4.3.1"
+                                    symbol={<span>l<sub>dh1</sub></span>}
+                                    topFormula={<span>0.075 × f<sub>y</sub> × ψ<sub>e</sub> × ψ<sub>s</sub> × ψ<sub>cc</sub> × ψ<sub>r</sub></span>}
+                                    bottomFormula={<span>λ × √f'<sub>c</sub></span>}
+                                    multiplierText={<span>d<sub>b</sub></span>}
+                                    topValues={<span>0.075 × {fy || 0} × {calcLdh.psie} × {calcLdh.psis} × {calcLdh.psicc} × {calcLdh.psir}</span>}
+                                    bottomValues={<span>{lambda} × {sqrtFcLimit.toFixed(2)}</span>}
+                                    multiplierValue={db}
+                                    result={calcLdh.ldh1}
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <EquationFlat title="เงื่อนไขที่ 2: มาตรฐานขั้นต่ำ" reference="ACI 318-25: 25.4.3.1" symbol={<span>l<sub>dh2</sub></span>} formula={<span>8 × d<sub>b</sub></span>} values={`8 × ${db}`} result={calcLdh.ldh2} />
+                                    <EquationFlat title="เงื่อนไขที่ 3: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.3.1" symbol={<span>l<sub>dh3</sub></span>} formula="150 มม." result={calcLdh.ldh3} />
+                                </div>
+
+                                <ResultBox title="ระยะฝังเหล็กงอขอรับแรงดึง" symbol={<span>L<sub>dh</sub></span>} value={calcLdh.final} />
+                            </div>
+
+                            {/* Tab: Ld */}
+                            <div className={`tab-content space-y-6 animate-fade-in ${activeTab === 'ld' ? 'active' : ''}`}>
+                                <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2"><Icons.Settings/> เงื่อนไขตัวคูณปรับแก้ L<sub>d</sub></h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <label className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input type="checkbox" checked={isTopBar} onChange={(e) => setIsTopBar(e.target.checked)} className="mt-1 w-4 h-4 text-blue-600" />
+                                        <div>
+                                            <div className="font-medium text-slate-800">เหล็กบน (Top Bar)</div>
+                                            <div className="text-xs text-slate-500 mt-0.5">มีคอนกรีตหล่อใต้เหล็ก > 300 มม. (ψ<sub>t</sub> = 1.3)</div>
+                                        </div>
+                                    </label>
+                                    <label className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input type="checkbox" checked={isEpoxy} onChange={(e) => setIsEpoxy(e.target.checked)} className="mt-1 w-4 h-4 text-blue-600" />
+                                        <div>
+                                            <div className="font-medium text-slate-800">เหล็กเคลือบอีพ็อกซี</div>
+                                            <div className="text-xs text-slate-500 mt-0.5">ψ<sub>e</sub> = 1.2 (รวม ψ<sub>t</sub> ต้องไม่เกิน 1.7)</div>
+                                        </div>
+                                    </label>
+
+                                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 col-span-1 md:col-span-2 space-y-5">
+                                        <div className="font-bold text-slate-800 border-b border-slate-200 pb-2">คำนวณดัชนีโอบรัด (Confinement Index)</div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-4">
+                                                <div className="font-semibold text-sm text-blue-700 bg-blue-50 px-3 py-1.5 rounded-md inline-block">1. ระยะหุ้มและระยะห่าง (c<sub>b</sub>)</div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-slate-600 mb-1">ระยะหุ้มสุทธิ มม.</label>
+                                                        <input type="number" value={clearCover} onChange={(e)=>setClearCover(e.target.value)} className="w-full p-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-slate-600 mb-1">ระยะห่างสุทธิ มม.</label>
+                                                        <input type="number" value={clearSpacing} onChange={(e)=>setClearSpacing(e.target.value)} className="w-full p-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between border-b md:border-none pb-2 md:pb-0">
+                                                    <div className="font-semibold text-sm text-blue-700 bg-blue-50 px-3 py-1.5 rounded-md inline-block">2. เหล็กปลอก (K<sub>tr</sub>)</div>
+                                                    <label className="flex items-center gap-2 cursor-pointer text-xs bg-white border border-slate-200 px-2 py-1.5 rounded shadow-sm hover:bg-slate-50">
+                                                        <input type="checkbox" checked={useKtr} onChange={(e)=>setUseKtr(e.target.checked)} className="rounded text-blue-600" />
+                                                        <span className="font-medium text-slate-700">คำนวณค่า K<sub>tr</sub></span>
+                                                    </label>
+                                                </div>
+
+                                                {useKtr ? (
+                                                    <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-slate-600 mb-1">ขนาดเหล็กปลอก</label>
+                                                            <select value={atrSize} onChange={(e)=>setAtrSize(e.target.value)} className="w-full p-2 text-sm border border-slate-300 rounded shadow-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                                                <option value="6">RB6</option>
+                                                                <option value="9">RB9</option>
+                                                                <option value="10">DB10</option>
+                                                                <option value="12">DB12</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-slate-600 mb-1">จำนวนขา (Legs)</label>
+                                                            <input type="number" min="1" value={atrLegs} onChange={(e)=>setAtrLegs(e.target.value)} className="w-full p-2 text-sm border border-slate-300 rounded shadow-sm focus:ring-2 focus:ring-blue-500" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-slate-600 mb-1">ระยะเรียง s (มม.)</label>
+                                                            <input type="number" min="1" value={sTie} onChange={(e)=>setSTie(e.target.value)} className="w-full p-2 text-sm border border-slate-300 rounded shadow-sm focus:ring-2 focus:ring-blue-500" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-slate-600 mb-1">เหล็กหลักรับแรง (n)</label>
+                                                            <input type="number" min="1" value={nBars} onChange={(e)=>setNBars(e.target.value)} className="w-full p-2 text-sm border border-slate-300 rounded shadow-sm focus:ring-2 focus:ring-blue-500" />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-slate-500 bg-slate-100 p-3 rounded-lg flex items-center justify-center border border-dashed border-slate-300 h-[100px]">
+                                                        กำหนด K<sub>tr</sub> = 0 เพื่อความปลอดภัย
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
+                                
+                                <div className="space-y-4 bg-white p-5 rounded-xl border border-blue-100 shadow-sm mb-6">
+                                    <h4 className="font-semibold text-slate-800 border-b pb-2">ขั้นตอนหาดัชนีโอบรัด <span className="font-mono text-sm">(c<sub>b</sub> + K<sub>tr</sub>) / d<sub>b</sub></span></h4>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <EquationFlat 
+                                            title="1. หาค่า c_b" 
+                                            symbol={<span>c<sub>b</sub></span>} 
+                                            formula="min(c1, c2)" 
+                                            values={`min(${calcCbKtr.c1.toFixed(1)}, ${calcCbKtr.c2.toFixed(1)})`} 
+                                            result={calcCbKtr.cb} 
+                                            reference="c1 = (Cover + db/2), c2 = (Spacing/2 + db/2)"
+                                        />
+                                        
+                                        {useKtr ? (
+                                            <EquationFraction 
+                                                title="2. หาค่า K_tr"
+                                                symbol={<span>K<sub>tr</sub></span>}
+                                                topFormula={<span>40 × A<sub>tr</sub></span>}
+                                                bottomFormula={<span>s × n</span>}
+                                                topValues={<span>40 × {calcCbKtr.atrArea.toFixed(1)}</span>}
+                                                bottomValues={<span>{sTie} × {nBars}</span>}
+                                                result={calcCbKtr.ktr}
+                                            />
+                                        ) : (
+                                            <EquationFlat 
+                                                title="2. หาค่า K_tr" 
+                                                symbol={<span>K<sub>tr</sub></span>} 
+                                                formula="0" 
+                                                result={0} 
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div className="bg-blue-50 p-5 rounded-xl flex flex-col md:flex-row items-center justify-between border border-blue-200">
+                                        <div>
+                                            <div className="font-semibold text-blue-900 mb-1">3. คำนวณและจำกัดค่าดัชนี</div>
+                                            <div className="font-mono text-sm text-blue-800">
+                                                (c<sub>b</sub> + K<sub>tr</sub>) / d<sub>b</sub> = ({calcCbKtr.cb.toFixed(1)} + {calcCbKtr.ktr.toFixed(1)}) / {db}
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 md:mt-0 bg-white px-8 py-3 rounded-xl shadow-sm border border-blue-100 flex flex-col items-center">
+                                            <div className="text-xs text-slate-500 mb-1">นำไปใช้ในสมการ (≤ 2.5)</div>
+                                            <div className="text-3xl font-bold text-blue-700">{calcCbKtr.confinement.toFixed(2)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <VarSummary>
+                                    <div>d<sub>b</sub> = {db} mm</div>
+                                    <div>λ = {lambda}</div>
+                                    <div>ψ<sub>t</sub> = {calcLd.psit}</div>
+                                    <div>ψ<sub>e</sub> = {calcLd.psie.toFixed(3)}</div>
+                                    <div>ψ<sub>s</sub> = {calcLd.psis}</div>
+                                    <div>Confinement = {calcCbKtr.confinement.toFixed(2)}</div>
+                                    <div className="col-span-2">f'<sub>c</sub> = {numFc} ksc {isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
+                                </VarSummary>
+
+                                <EquationFraction 
+                                    title="เงื่อนไขที่ 1: คำนวณตามสมการ"
+                                    reference="ACI 318-25: 25.4.2.4"
+                                    symbol={<span>l<sub>d_base</sub></span>}
+                                    topFormula={<span>0.285 × f<sub>y</sub> × ψ<sub>t</sub> × ψ<sub>e</sub> × ψ<sub>s</sub></span>}
+                                    bottomFormula={<span>λ × √f'<sub>c</sub> × Confinement</span>}
+                                    multiplierText={<span>d<sub>b</sub></span>}
+                                    topValues={<span>0.285 × {fy || 0} × {calcLd.psit} × {calcLd.psie.toFixed(3)} × {calcLd.psis}</span>}
+                                    bottomValues={<span>{lambda} × {sqrtFcLimit.toFixed(2)} × {calcCbKtr.confinement.toFixed(2)}</span>}
+                                    multiplierValue={db}
+                                    result={calcLd.ld_base}
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <EquationFlat title="เงื่อนไขที่ 2: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.2.1" symbol={<span>l<sub>d_min</sub></span>} formula="300 มม." result={300} />
+                                </div>
+
+                                <ResultBox title="ระยะฝังเหล็กตรงรับแรงดึง" symbol={<span>L<sub>d</sub></span>} value={calcLd.final} />
+                            </div>
+
+                            {/* Tab: Ldc */}
+                            <div className={`tab-content space-y-6 animate-fade-in ${activeTab === 'ldc' ? 'active' : ''}`}>
+                                <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2"><Icons.Settings/> เงื่อนไข L<sub>dc</sub></h3>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <label className="flex items-start gap-4 p-5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input type="checkbox" checked={hasConfiningLdc} onChange={(e) => setHasConfiningLdc(e.target.checked)} className="mt-1 w-5 h-5 text-blue-600 rounded" />
+                                        <div>
+                                            <div className="font-medium text-slate-800 text-base">มีเหล็กปลอก/ปลอกเกลียวโอบรัดตามเกณฑ์</div>
+                                            <div className="text-sm text-slate-500 mt-1">เส้นผ่านศูนย์กลางปลอก ≥ 6 มม. และระยะเรียง ≤ 100 มม. (ψ<sub>r</sub> = 0.75)</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
+                                <VarSummary>
+                                    <div>d<sub>b</sub> = {db} mm</div>
+                                    <div>λ = {lambda}</div>
+                                    <div>ψ<sub>r</sub> = {calcLdc.psir}</div>
+                                    <div className="col-span-2">f'<sub>c</sub> = {numFc} ksc {isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
+                                </VarSummary>
+
+                                <EquationFraction 
+                                    title="เงื่อนไขที่ 1: คำนวณจากกำลังคอนกรีต"
+                                    reference="ACI 318-25: 25.4.9.2"
+                                    symbol={<span>l<sub>dc1</sub></span>}
+                                    topFormula={<span>0.075 × f<sub>y</sub> × ψ<sub>r</sub></span>}
+                                    bottomFormula={<span>λ × √f'<sub>c</sub></span>}
+                                    multiplierText={<span>d<sub>b</sub></span>}
+                                    topValues={<span>0.075 × {fy || 0} × {calcLdc.psir}</span>}
+                                    bottomValues={<span>{lambda} × {sqrtFcLimit.toFixed(2)}</span>}
+                                    multiplierValue={db}
+                                    result={calcLdc.ldc1}
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <EquationFlat title="เงื่อนไขที่ 2: มาตรฐานขั้นต่ำ" reference="ACI 318-25: 25.4.9.2" symbol={<span>l<sub>dc2</sub></span>} formula={<span>0.00427 × f<sub>y</sub> × ψ<sub>r</sub> × d<sub>b</sub></span>} values={`0.00427 × ${fy || 0} × ${calcLdc.psir} × ${db}`} result={calcLdc.ldc2} />
+                                    <EquationFlat title="เงื่อนไขที่ 3: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.9.1" symbol={<span>l<sub>dc3</sub></span>} formula="200 มม." result={calcLdc.ldc3} />
+                                </div>
+
+                                <ResultBox title="ระยะฝังเหล็กรับแรงอัด" symbol={<span>L<sub>dc</sub></span>} value={calcLdc.final} />
+                            </div>
+
+                            {/* Tab: Lst */}
+                            <div className={`tab-content space-y-6 animate-fade-in ${activeTab === 'lst' ? 'active' : ''}`}>
+                                <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2"><Icons.Settings/> เลือก Class การทาบ (L<sub>st</sub>)</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <label className={`flex items-start gap-4 p-5 border rounded-xl cursor-pointer transition-all ${spliceClass==="A" ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>
+                                        <input type="radio" name="splice" checked={spliceClass==="A"} onChange={() => setSpliceClass("A")} className="mt-1 w-5 h-5 text-blue-600" />
+                                        <div>
+                                            <div className={`font-bold text-base ${spliceClass==="A" ? 'text-blue-800' : 'text-slate-800'}`}>Class A (1.0 L<sub>d</sub>)</div>
+                                            <div className="text-sm text-slate-500 mt-1">เหล็กทาบ ≤ 50% และจัดเหล็กมากกว่าที่ต้องการจริง 2 เท่า</div>
+                                        </div>
+                                    </label>
+                                    <label className={`flex items-start gap-4 p-5 border rounded-xl cursor-pointer transition-all ${spliceClass==="B" ? 'bg-amber-50 border-amber-400 shadow-sm' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>
+                                        <input type="radio" name="splice" checked={spliceClass==="B"} onChange={() => setSpliceClass("B")} className="mt-1 w-5 h-5 text-amber-600" />
+                                        <div>
+                                            <div className={`font-bold text-base ${spliceClass==="B" ? 'text-amber-800' : 'text-slate-800'}`}>Class B (1.3 L<sub>d</sub>)</div>
+                                            <div className="text-sm text-slate-500 mt-1">กรณีทั่วไปทั้งหมดที่ไม่เข้าเกณฑ์ Class A (ทาบ 100%)</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div className="bg-slate-50 p-3 rounded-lg text-sm text-center text-slate-600 border border-slate-200">
+                                    ค่าอ้างอิง L<sub>d</sub> ปัจจุบัน = <span className="font-bold text-slate-800">{calcLd.final.toFixed(2)} มม.</span> (อิงการตั้งค่าแท็บ Ld)
+                                </div>
+
+                                <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
+                                <VarSummary>
+                                    <div>Class = {spliceClass}</div>
+                                    <div>ตัวคูณ = {calcLst.mult}</div>
+                                    <div className="col-span-2">L<sub>d</sub> = {calcLd.final.toFixed(2)} mm</div>
+                                </VarSummary>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <EquationFlat title="เงื่อนไขที่ 1: คำนวณตาม Class" reference="ACI 318-25: 25.5.2.1" symbol={<span>l<sub>st1</sub></span>} formula={<span>ตัวคูณ × L<sub>d</sub></span>} values={`${calcLst.mult} × ${calcLd.final.toFixed(2)}`} result={calcLst.lst_base} />
+                                    <EquationFlat title="เงื่อนไขที่ 2: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.5.2.1" symbol={<span>l<sub>st2</sub></span>} formula="300 มม." result={300} />
+                                </div>
+
+                                <ResultBox title="ระยะทาบเหล็กรับแรงดึง" symbol={<span>L<sub>st</sub></span>} value={calcLst.final} />
+                            </div>
+
+                            {/* Tab: Lsc */}
+                            <div className={`tab-content space-y-6 animate-fade-in ${activeTab === 'lsc' ? 'active' : ''}`}>
+                                <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2"><Icons.Settings/> เงื่อนไข L<sub>sc</sub></h3>
+                                
+                                <div className="space-y-4">
+                                    {numFc < 210 && (
+                                        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm flex items-start gap-3">
+                                            <div className="mt-0.5">⚠️</div>
+                                            <div><strong>ข้อควรระวัง:</strong> กำลังอัดคอนกรีตต่ำกว่า 210 ksc ระยะทาบจะถูกคูณเพิ่ม 33% อัตโนมัติ (ตัวคูณ fc_mod = 1.33)</div>
+                                        </div>
+                                    )}
+                                    <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <div className="font-bold text-slate-800 mb-3">ตัวคูณลดทอนจากเหล็กปลอกโอบรัดบริเวณรอยทาบ</div>
+                                        <select value={lscConfine} onChange={(e) => setLscConfine(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm">
+                                            <option value="1.0">ไม่มีเหล็กปลอกพิเศษ / ไม่เข้าเกณฑ์ (x 1.0)</option>
+                                            <option value="0.83">มีเหล็กปลอก Ties ที่มีพื้นที่หน้าตัดรัดรอบ ≥ 0.0015hs (x 0.83)</option>
+                                            <option value="0.75">มีเหล็กปลอกเกลียว Spirals (x 0.75)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
+                                <VarSummary>
+                                    <div>d<sub>b</sub> = {db} mm</div>
+                                    <div>f<sub>y</sub> = {fy || 0} ksc</div>
+                                    <div>ตัวคูณ f'<sub>c</sub> = {calcLsc.fc_mod.toFixed(3)}</div>
+                                    <div>ตัวคูณโอบรัด = {calcLsc.confine_mod}</div>
+                                </VarSummary>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <EquationFlat 
+                                        title="เงื่อนไขที่ 1: คำนวณจากกำลังเหล็ก" 
+                                        reference="ACI 318-25: 25.5.5.1"
+                                        symbol={<span>l<sub>sc1</sub></span>} 
+                                        formula={numFy <= 4280 ? <span>(0.007 × f<sub>y</sub> × d<sub>b</sub>) × ตัวคูณ</span> : <span>((0.0127 × f<sub>y</sub> - 24) × d<sub>b</sub>) × ตัวคูณ</span>} 
+                                        values={numFy <= 4280 ? `(0.007 × ${fy || 0} × ${db}) × ${calcLsc.fc_mod.toFixed(2)} × ${calcLsc.confine_mod}` : `((0.0127 × ${fy || 0} - 24) × ${db}) × ${calcLsc.fc_mod.toFixed(2)} × ${calcLsc.confine_mod}`} 
+                                        result={calcLsc.lsc_1} 
+                                    />
+                                    <EquationFlat title="เงื่อนไขที่ 2: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.5.5.1" symbol={<span>l<sub>sc2</sub></span>} formula="300 มม." result={300} />
+                                </div>
+
+                                <ResultBox title="ระยะทาบเหล็กรับแรงอัด" symbol={<span>L<sub>sc</sub></span>} value={calcLsc.final} />
+                            </div>
+
+                            {/* Tab: Var Info */}
+                            <div className={`tab-content space-y-8 animate-fade-in ${activeTab === 'var_info' ? 'active' : ''}`}>
+                                <div className="text-center mb-6">
+                                    <h3 className="text-2xl font-bold text-slate-800">คู่มือและข้อมูลตัวแปร</h3>
+                                    <p className="text-slate-500 mt-2">คำอธิบายรายละเอียดที่ใช้ในการคำนวณตามมาตรฐาน ACI 318-25</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* ตัวแปรหลัก */}
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                                        <h4 className="font-bold text-lg text-blue-700 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+                                            <span className="bg-blue-100 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span> 
+                                            ตัวแปรหลัก (Main Variables)
+                                        </h4>
+                                        <ul className="space-y-4 text-sm text-slate-700">
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">f<sub>y</sub></strong> กำลังครากของเหล็กเสริม (Yield strength) ในโปรแกรมนี้อ้างอิงและคำนวณด้วยหน่วย <strong>ksc (kgf/cm²)</strong></li>
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">f'<sub>c</sub></strong> กำลังอัดทรงกระบอกของคอนกรีตที่ 28 วัน ในโปรแกรมนี้ใช้หน่วย <strong>ksc</strong> <i>(โปรแกรมจะจำกัดค่า f'<sub>c</sub> ไม่เกิน 700 ksc สำหรับสมการที่เกี่ยวข้องตามกฎของ ACI)</i></li>
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">d<sub>b</sub></strong> เส้นผ่านศูนย์กลางระบุของเหล็กเสริม (Nominal diameter) ในโปรแกรมนี้ใช้หน่วย <strong>มิลลิเมตร (mm)</strong></li>
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">λ</strong> ตัวคูณปรับแก้คอนกรีตมวลเบา (Lightweight concrete factor) ใช้ 0.75 สำหรับมวลเบา และ 1.0 สำหรับคอนกรีตปกติ</li>
+                                        </ul>
+                                    </div>
+
+                                    {/* ตัวคูณปรับแก้ */}
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                                        <h4 className="font-bold text-lg text-emerald-600 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+                                            <span className="bg-emerald-100 text-emerald-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span> 
+                                            ตัวคูณสภาพ (Modification Factors)
+                                        </h4>
+                                        <ul className="space-y-4 text-sm text-slate-700">
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">ψ<sub>e</sub></strong> ตัวคูณเคลือบอีพ็อกซี: เหล็กที่มีการเคลือบจะลื่นขึ้น ทำให้ยึดเหนี่ยวกับคอนกรีตได้น้อยลง จึงต้องเพิ่มระยะฝัง</li>
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">ψ<sub>t</sub></strong> ตัวคูณเหล็กบน: เมื่อหล่อคอนกรีตหนาเกิน 300 มม. ใต้เหล็กเส้น น้ำในคอนกรีตจะเยิ้มขึ้นมา (Bleeding) ทำให้โพรงอากาศสะสมใต้เหล็ก การยึดเหนี่ยวจึงแย่ลง</li>
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">ψ<sub>s</sub></strong> ตัวคูณขนาดเหล็ก: เหล็กเส้นขนาดเล็กมีพื้นที่ผิวสัมผัสต่อพื้นที่หน้าตัดมากกว่า ทำให้การยึดเหนี่ยวดีกว่าเหล็กเส้นใหญ่</li>
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">ψ<sub>cc</sub></strong> ตัวคูณระยะหุ้ม: หากมีคอนกรีตหุ้มหนาพอ จะช่วยป้องกันการแตกร้าวกะเทาะ (Spalling) ได้ดีขึ้น</li>
+                                            <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">ψ<sub>r</sub></strong> ตัวคูณเหล็กโอบรัด: เหล็กปลอกช่วยรัดแกนคอนกรีตไว้ไม่ให้แตกออกด้านข้าง ทำให้สามารถลดระยะฝังได้</li>
+                                        </ul>
+                                    </div>
+
+                                    {/* ดัชนีการโอบรัด */}
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm md:col-span-2">
+                                        <h4 className="font-bold text-lg text-purple-700 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+                                            <span className="bg-purple-100 text-purple-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span> 
+                                            ดัชนีโอบรัดสำหรับการฝังตรง (Confinement Index)
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <ul className="space-y-4 text-sm text-slate-700">
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">c<sub>b</sub></strong> คือ ค่าที่น้อยกว่าระหว่าง "ระยะหุ้มสุทธิ+รัศมีเหล็ก" และ "ครึ่งหนึ่งของระยะห่างสุทธิ+รัศมีเหล็ก" ใช้เป็นตัวแทนระยะคอนกรีตที่บางที่สุดที่จะเกิดการแตกร้าว</li>
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">K<sub>tr</sub></strong> ดัชนีเหล็กปลอกโอบรัดตามขวาง (Transverse reinforcement index) ค่านี้แสดงถึงความสามารถของเหล็กปลอกในการช่วยต้านทานรอยร้าว</li>
+                                            </ul>
+                                            <ul className="space-y-4 text-sm text-slate-700 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">A<sub>tr</sub></strong> พื้นที่หน้าตัดรวมของเหล็กปลอกทุกขาที่พาดผ่านระนาบการแตกร้าว (ตร.มม.)</li>
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">s</strong> ระยะเรียงของเหล็กปลอก (มม.)</li>
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">n</strong> จำนวนเหล็กเส้นหลักรับแรงดึงที่ถูกทาบหรือฝังในระนาบเดียวกัน</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    {/* ตัวคูณลดทอนระยะทาบแรงอัด */}
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm md:col-span-2">
+                                        <h4 className="font-bold text-lg text-orange-600 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+                                            <span className="bg-orange-100 text-orange-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">4</span> 
+                                            ตัวคูณลดทอนระยะทาบรับแรงอัด (L<sub className="-ml-0.5">sc</sub> Modifiers)
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <ul className="space-y-4 text-sm text-slate-700">
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">x 1.0</strong> ไม่มีเหล็กปลอกพิเศษโอบรัด หรือปริมาณไม่เข้าเกณฑ์การลดทอน</li>
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">x 0.83</strong> มีเหล็กปลอก (Ties) โอบรัดรอยทาบ โดยมีพื้นที่หน้าตัดเหล็กปลอกรัดรอบ &ge; 0.0015hs</li>
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">x 0.75</strong> มีเหล็กปลอกเกลียว (Spirals) โอบรัดรอยทาบตลอดความยาวทาบ</li>
+                                            </ul>
+                                            <ul className="space-y-4 text-sm text-slate-700 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">h</strong> ความหนาหรือมิติโดยรวมของหน้าตัดโครงสร้าง (มม.)</li>
+                                                <li><strong className="text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mr-1">s</strong> ระยะเรียงของเหล็กปลอก (มม.)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-slate-100 border border-slate-200 p-5 rounded-xl text-sm text-slate-600 flex items-start gap-3">
+                                    <div className="text-xl">📌</div>
+                                    <p className="leading-relaxed">
+                                        <strong>ข้อสังเกตในการคำนวณ:</strong> ค่าที่แสดงในโปรแกรมนี้ถูกแปลงสูตรจากระบบนิ้ว-ปอนด์ (US Customary) มาเป็นระบบเมตริก (Metric ksc) ตามเอกสารมาตรฐานของวิศวกรรมสถานแห่งประเทศไทย (วสท.) แล้ว 
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Tab: Hook Info */}
+                            <div className={`tab-content space-y-8 animate-fade-in ${activeTab === 'hook_info' ? 'active' : ''}`}>
+                                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                                    <h3 className="text-2xl font-bold mb-3 text-slate-800">มาตรฐานระยะการงอขอ (Standard Hook Geometry)</h3>
+                                    <p className="text-base text-slate-500 leading-relaxed max-w-2xl">
+                                        ข้อกำหนดระยะการงอขอสำหรับเหล็กปลอก (Stirrups) และเหล็กปลอกเกลียว (Ties, Hoops) อ้างอิงตามตารางมาตรฐาน <strong>ACI 318-25 Table 25.3.2</strong>
+                                    </p>
+                                </div>
+
+                                {/* 90-Degree Hook */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+                                    <div className="md:w-1/3 bg-slate-50 flex flex-col items-center justify-center p-6 border-b md:border-b-0 md:border-r border-slate-200">
+                                        <div className="font-bold text-base text-slate-700 mb-6 bg-white px-5 py-2 rounded-full shadow-sm border border-slate-100">
+                                            ขอฉาก 90°
+                                        </div>
+                                        <svg viewBox="0 0 280 200" className="w-full max-w-[280px] mx-auto drop-shadow-sm">
+                                            <defs>
+                                                <marker id="arrowHead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+                                                <marker id="arrowStart" markerWidth="8" markerHeight="8" refX="0" refY="4" orient="auto"><path d="M8,0 L0,4 L8,8 Z" fill="#334155"/></marker>
+                                            </defs>
+                                            <path d="M 10 50 H 140 A 40 40 0 0 1 180 90 V 170" fill="none" stroke="#475569" strokeWidth="12" strokeLinecap="round"/>
+                                            <circle cx="140" cy="90" r="34" fill="none" stroke="#64748b" strokeDasharray="5 4" strokeWidth="1.5"/>
+                                            <line x1="130" y1="90" x2="150" y2="90" stroke="#64748b" strokeWidth="1.5"/>
+                                            <line x1="140" y1="80" x2="140" y2="100" stroke="#64748b" strokeWidth="1.5"/>
+                                            <text x="30" y="135" fontSize="16" fill="#334155" fontWeight="bold" fontStyle="italic">Diameter</text>
+                                            <line x1="105" y1="130" x2="116" y2="114" stroke="#334155" strokeWidth="1.5"/>
+                                            <line x1="116" y1="114" x2="164" y2="66" stroke="#334155" strokeWidth="1.5" markerStart="url(#arrowStart)" markerEnd="url(#arrowHead)"/>
+                                            
+                                            {/* Corrected db dimension */}
+                                            <text x="40" y="35" fontSize="18" fill="#334155" fontWeight="bold" fontStyle="italic">d<tspan baselineShift="sub" fontSize="12">b</tspan></text>
+                                            <line x1="70" y1="44" x2="110" y2="44" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="70" y1="56" x2="110" y2="56" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="90" y1="20" x2="90" y2="42" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead)"/>
+                                            <line x1="90" y1="80" x2="90" y2="58" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead)"/>
+                                            
+                                            {/* Moved bend text */}
+                                            <text x="195" y="35" fontSize="14" fill="#334155">90-degree</text>
+                                            <text x="195" y="50" fontSize="14" fill="#334155">bend</text>
+                                            <path d="M 210 55 Q 210 75 180 75" fill="none" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead)"/>
+                                            
+                                            {/* lext dimension */}
+                                            <line x1="188" y1="90" x2="210" y2="90" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="188" y1="170" x2="210" y2="170" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="200" y1="90" x2="200" y2="170" stroke="#334155" strokeWidth="1.5" markerStart="url(#arrowStart)" markerEnd="url(#arrowHead)"/>
+                                            <text x="210" y="135" fontSize="18" fill="#334155" fontWeight="bold" fontStyle="italic">l<tspan baselineShift="sub" fontSize="12">ext</tspan></text>
+                                        </svg>
+                                    </div>
+                                    <div className="md:w-2/3 p-6 flex flex-col justify-center">
+                                        <div className="grid grid-cols-3 gap-4 text-center mb-3">
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">ขนาดเหล็ก</div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">วงโค้ง Diameter (Min)</div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">ระยะยื่น l<sub>ext</sub></div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-3 gap-4 items-center bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 hover:bg-blue-50 transition-colors">
+                                                <div className="font-semibold text-slate-700 text-center text-sm md:text-base">DB10 - DB16</div>
+                                                <div className="text-blue-700 font-mono text-center font-bold">4 d<sub>b</sub></div>
+                                                <div className="text-slate-600 text-center text-sm leading-relaxed">Max( <span className="font-bold text-slate-800">6 d<sub>b</sub></span> , <span className="font-bold text-slate-800">75 มม.</span> )</div>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-4 items-center bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 hover:bg-blue-50 transition-colors">
+                                                <div className="font-semibold text-slate-700 text-center text-sm md:text-base">DB20 - DB25</div>
+                                                <div className="text-blue-700 font-mono text-center font-bold">6 d<sub>b</sub></div>
+                                                <div className="text-slate-600 text-center text-sm font-bold text-slate-800">12 d<sub>b</sub></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 135-Degree Hook */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+                                    <div className="md:w-1/3 bg-slate-50 flex flex-col items-center justify-center p-6 border-b md:border-b-0 md:border-r border-slate-200">
+                                        <div className="font-bold text-base text-slate-700 mb-6 bg-white px-5 py-2 rounded-full shadow-sm border border-slate-100">
+                                            ขอ 135°
+                                        </div>
+                                        <svg viewBox="0 0 280 200" className="w-full max-w-[280px] mx-auto drop-shadow-sm">
+                                            <defs>
+                                                <marker id="arrowHead2" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+                                                <marker id="arrowStart2" markerWidth="8" markerHeight="8" refX="0" refY="4" orient="auto"><path d="M8,0 L0,4 L8,8 Z" fill="#334155"/></marker>
+                                            </defs>
+                                            <path d="M 10 50 H 140 A 40 40 0 0 1 168.3 118.3 L 125.9 160.7" fill="none" stroke="#475569" strokeWidth="12" strokeLinecap="round"/>
+                                            <circle cx="140" cy="90" r="34" fill="none" stroke="#64748b" strokeDasharray="5 4" strokeWidth="1.5"/>
+                                            <line x1="130" y1="90" x2="150" y2="90" stroke="#64748b" strokeWidth="1.5"/>
+                                            <line x1="140" y1="80" x2="140" y2="100" stroke="#64748b" strokeWidth="1.5"/>
+                                            <text x="30" y="125" fontSize="16" fill="#334155" fontWeight="bold" fontStyle="italic">Diameter</text>
+                                            <line x1="105" y1="120" x2="116" y2="114" stroke="#334155" strokeWidth="1.5"/>
+                                            <line x1="116" y1="114" x2="164" y2="66" stroke="#334155" strokeWidth="1.5" markerStart="url(#arrowStart2)" markerEnd="url(#arrowHead2)"/>
+                                            
+                                            {/* Corrected db dimension */}
+                                            <text x="40" y="35" fontSize="18" fill="#334155" fontWeight="bold" fontStyle="italic">d<tspan baselineShift="sub" fontSize="12">b</tspan></text>
+                                            <line x1="70" y1="44" x2="110" y2="44" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="70" y1="56" x2="110" y2="56" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="90" y1="20" x2="90" y2="42" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead2)"/>
+                                            <line x1="90" y1="80" x2="90" y2="58" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead2)"/>
+                                            
+                                            {/* Moved bend text */}
+                                            <text x="200" y="70" fontSize="14" fill="#334155">135-degree</text>
+                                            <text x="200" y="85" fontSize="14" fill="#334155">bend</text>
+                                            <path d="M 215 90 Q 215 115 175 110" fill="none" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead2)"/>
+                                            
+                                            {/* lext dimension */}
+                                            <line x1="168.3" y1="118.3" x2="185" y2="135" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="125.9" y1="160.7" x2="142.6" y2="177.4" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="178" y1="128" x2="135.6" y2="170.4" stroke="#334155" strokeWidth="1.5" markerStart="url(#arrowStart2)" markerEnd="url(#arrowHead2)"/>
+                                            <text x="165" y="165" fontSize="18" fill="#334155" fontWeight="bold" fontStyle="italic">l<tspan baselineShift="sub" fontSize="12">ext</tspan></text>
+                                        </svg>
+                                    </div>
+                                    <div className="md:w-2/3 p-6 flex flex-col justify-center">
+                                        <div className="grid grid-cols-3 gap-4 text-center mb-3">
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">ขนาดเหล็ก</div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">วงโค้ง Diameter (Min)</div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">ระยะยื่น l<sub>ext</sub></div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-3 gap-4 items-center bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 hover:bg-blue-50 transition-colors">
+                                                <div className="font-semibold text-slate-700 text-center text-sm md:text-base">DB10 - DB16</div>
+                                                <div className="text-blue-700 font-mono text-center font-bold">4 d<sub>b</sub></div>
+                                                <div className="text-slate-600 text-center text-sm leading-relaxed">Max( <span className="font-bold text-slate-800">6 d<sub>b</sub></span> , <span className="font-bold text-slate-800">75 มม.</span> )</div>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-4 items-center bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 hover:bg-blue-50 transition-colors">
+                                                <div className="font-semibold text-slate-700 text-center text-sm md:text-base">DB20 - DB25</div>
+                                                <div className="text-blue-700 font-mono text-center font-bold">6 d<sub>b</sub></div>
+                                                <div className="text-slate-600 text-center text-sm leading-relaxed">Max( <span className="font-bold text-slate-800">6 d<sub>b</sub></span> , <span className="font-bold text-slate-800">75 มม.</span> )</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 180-Degree Hook */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+                                    <div className="md:w-1/3 bg-slate-50 flex flex-col items-center justify-center p-6 border-b md:border-b-0 md:border-r border-slate-200">
+                                        <div className="font-bold text-base text-slate-700 mb-6 bg-white px-5 py-2 rounded-full shadow-sm border border-slate-100">
+                                            ขอ 180°
+                                        </div>
+                                        <svg viewBox="0 0 280 200" className="w-full max-w-[280px] mx-auto drop-shadow-sm">
+                                            <defs>
+                                                <marker id="arrowHead3" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+                                                <marker id="arrowStart3" markerWidth="8" markerHeight="8" refX="0" refY="4" orient="auto"><path d="M8,0 L0,4 L8,8 Z" fill="#334155"/></marker>
+                                            </defs>
+                                            <path d="M 10 50 H 140 A 40 40 0 0 1 140 130 H 100" fill="none" stroke="#475569" strokeWidth="12" strokeLinecap="round"/>
+                                            <circle cx="140" cy="90" r="34" fill="none" stroke="#64748b" strokeDasharray="5 4" strokeWidth="1.5"/>
+                                            <line x1="130" y1="90" x2="150" y2="90" stroke="#64748b" strokeWidth="1.5"/>
+                                            <line x1="140" y1="80" x2="140" y2="100" stroke="#64748b" strokeWidth="1.5"/>
+                                            <text x="30" y="145" fontSize="16" fill="#334155" fontWeight="bold" fontStyle="italic">Diameter</text>
+                                            <line x1="105" y1="140" x2="116" y2="114" stroke="#334155" strokeWidth="1.5"/>
+                                            <line x1="116" y1="114" x2="164" y2="66" stroke="#334155" strokeWidth="1.5" markerStart="url(#arrowStart3)" markerEnd="url(#arrowHead3)"/>
+                                            
+                                            {/* Corrected db dimension */}
+                                            <text x="40" y="35" fontSize="18" fill="#334155" fontWeight="bold" fontStyle="italic">d<tspan baselineShift="sub" fontSize="12">b</tspan></text>
+                                            <line x1="70" y1="44" x2="110" y2="44" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="70" y1="56" x2="110" y2="56" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="90" y1="20" x2="90" y2="42" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead3)"/>
+                                            <line x1="90" y1="80" x2="90" y2="58" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead3)"/>
+                                            
+                                            {/* Moved bend text */}
+                                            <text x="200" y="110" fontSize="14" fill="#334155">180-degree</text>
+                                            <text x="200" y="125" fontSize="14" fill="#334155">bend</text>
+                                            <path d="M 210 130 Q 200 145 176 122" fill="none" stroke="#334155" strokeWidth="1.5" markerEnd="url(#arrowHead3)"/>
+                                            
+                                            {/* lext dimension */}
+                                            <line x1="140" y1="138" x2="140" y2="160" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="100" y1="138" x2="100" y2="160" stroke="#334155" strokeWidth="1"/>
+                                            <line x1="140" y1="150" x2="100" y2="150" stroke="#334155" strokeWidth="1.5" markerStart="url(#arrowStart3)" markerEnd="url(#arrowHead3)"/>
+                                            <text x="110" y="175" fontSize="18" fill="#334155" fontWeight="bold" fontStyle="italic">l<tspan baselineShift="sub" fontSize="12">ext</tspan></text>
+                                        </svg>
+                                    </div>
+                                    <div className="md:w-2/3 p-6 flex flex-col justify-center">
+                                        <div className="grid grid-cols-3 gap-4 text-center mb-3">
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">ขนาดเหล็ก</div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">วงโค้ง Diameter (Min)</div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">ระยะยื่น l<sub>ext</sub></div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-3 gap-4 items-center bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 hover:bg-blue-50 transition-colors">
+                                                <div className="font-semibold text-slate-700 text-center text-sm md:text-base">DB10 - DB16</div>
+                                                <div className="text-blue-700 font-mono text-center font-bold">4 d<sub>b</sub></div>
+                                                <div className="text-slate-600 text-center text-sm leading-relaxed">Max( <span className="font-bold text-slate-800">4 d<sub>b</sub></span> , <span className="font-bold text-slate-800">65 มม.</span> )</div>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-4 items-center bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 hover:bg-blue-50 transition-colors">
+                                                <div className="font-semibold text-slate-700 text-center text-sm md:text-base">DB20 - DB25</div>
+                                                <div className="text-blue-700 font-mono text-center font-bold">6 d<sub>b</sub></div>
+                                                <div className="text-slate-600 text-center text-sm leading-relaxed">Max( <span className="font-bold text-slate-800">4 d<sub>b</sub></span> , <span className="font-bold text-slate-800">65 มม.</span> )</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm text-slate-500 text-center">
+                                    <span className="font-bold text-slate-600">อ้างอิง:</span> ค่าระยะความยาวในตารางต้นฉบับได้ถูกปัดและแปลงเป็นมิลลิเมตร (3 in. ≈ 75 mm, 2.5 in. ≈ 65 mm) เพื่อให้สอดคล้องกับการทำงานในระบบ Metric (มม.)
+                                </div>
+                            </div>
+
+                            {/* Tab: Splice Info */}
+                            <div className={`tab-content space-y-8 animate-fade-in ${activeTab === 'splice_info' ? 'active' : ''}`}>
+                                
+                                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                                    <AppIconVector className="w-36 h-36 mb-6 drop-shadow-sm rounded-3xl bg-blue-50" />
+                                    <h3 className="text-2xl font-bold mb-3 text-slate-800">หลักการทาบต่อเหล็กรับแรงดึง</h3>
+                                    <p className="text-base text-slate-500 leading-relaxed max-w-2xl">
+                                        มาตรฐาน ACI 318 พิจารณาการทาบเหล็ก (Tension Splice) จาก 2 ปัจจัยหลัก คือ <br/>
+                                        <strong>1. สัดส่วนปริมาณเหล็กเสริม</strong> (เหล็กที่ใส่จริงเทียบกับที่คำนวณต้องการ) <br/>
+                                        <strong>2. เปอร์เซ็นต์การทาบต่อ</strong> (ในหน้าตัดเดียวกัน)
+                                    </p>
+                                </div>
+
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <div className="bg-blue-50 border-b border-slate-200 p-5">
+                                        <h4 className="font-bold text-xl text-blue-800">Class A Splice (ระยะทาบ = 1.0 L<sub>d</sub>)</h4>
+                                        <p className="text-sm text-slate-600 mt-2">ต้องเข้าเงื่อนไข <strong>ทั้ง 2 ข้อ</strong> ต่อไปนี้:</p>
+                                        <ul className="list-disc list-inside text-sm text-slate-700 mt-2 space-y-1.5 ml-2">
+                                            <li>มีปริมาณเหล็กเสริมที่จัดให้ (As,provided) <strong>มากกว่าหรือเท่ากับ 2 เท่า</strong> ของเหล็กที่ต้องการจากการคำนวณตลอดช่วงความยาวทาบ</li>
+                                            <li>มีการทาบต่อเหล็กเส้นในหน้าตัดเดียวกัน <strong>ไม่เกิน 50%</strong> (จัดทาบแบบสลับฟันปลา)</li>
+                                        </ul>
+                                    </div>
+                                    <div className="p-8 flex justify-center bg-slate-50">
+                                        <svg viewBox="0 0 500 240" className="w-full max-w-xl h-auto drop-shadow-md">
+                                            <rect width="500" height="240" rx="24" fill="#eff6ff" stroke="#bfdbfe" strokeWidth="2"/>
+                                            
+                                            <text x="30" y="45" fontSize="14" fill="#475569" fontWeight="bold">เหล็กเส้นที่ 1 (วิ่งต่อเนื่อง ไม่ทาบหน้าตัดนี้)</text>
+                                            <RebarLine x1={40} x2={460} y={70} color="#334155" />
+                                            
+                                            <text x="30" y="125" fontSize="14" fill="#475569" fontWeight="bold">เหล็กเส้นที่ 2 (ทาบต่อ 50%)</text>
+                                            <RebarLine x1={40} x2={340} y={150} color="#334155" />
+                                            <RebarLine x1={160} x2={460} y={170} color="#2563eb" />
+                                            
+                                            <path d="M160 210 H340" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="6 4"/>
+                                            <path d="M160 200 V220 M340 200 V220" stroke="#ef4444" strokeWidth="2.5"/>
+                                            <path d="M168 204 L160 210 L168 216 M332 204 L340 210 L332 216" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <text x="250" y="228" fontSize="16" fill="#ef4444" fontWeight="bold" textAnchor="middle">ระยะทาบ 1.0 L<tspan baselineShift="sub" fontSize="12" dx="-2">d</tspan></text>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <div className="bg-amber-50 border-b border-slate-200 p-5">
+                                        <h4 className="font-bold text-xl text-amber-800">Class B Splice (ระยะทาบ = 1.3 L<sub>d</sub>)</h4>
+                                        <p className="text-sm text-slate-600 mt-2">ใช้ในกรณีทั่วไปที่ <strong>ไม่เข้าเงื่อนไข Class A</strong> (คือกรณีส่วนใหญ่ในการก่อสร้างจริง):</p>
+                                        <ul className="list-disc list-inside text-sm text-slate-700 mt-2 space-y-1.5 ml-2">
+                                            <li>มีการทาบต่อเหล็ก <strong>มากกว่า 50%</strong> (เช่น ทาบจุดเดียวกันทั้งหมด 100%)</li>
+                                            <li>หรือ ปริมาณเหล็กเสริมที่จัดให้ <strong>น้อยกว่า 2 เท่า</strong> ของเหล็กที่ต้องการ (ออกแบบได้พอดีหรือเผื่อน้อย)</li>
+                                        </ul>
+                                    </div>
+                                    <div className="p-8 flex justify-center bg-slate-50">
+                                        <svg viewBox="0 0 500 240" className="w-full max-w-xl h-auto drop-shadow-md">
+                                            <rect width="500" height="240" rx="24" fill="#fdfae8" stroke="#fde68a" strokeWidth="2"/>
+                                            
+                                            <text x="30" y="45" fontSize="14" fill="#475569" fontWeight="bold">เหล็กเส้นที่ 1 (ทาบต่อ)</text>
+                                            <RebarLine x1={40} x2={380} y={70} color="#334155" />
+                                            <RebarLine x1={120} x2={460} y={90} color="#2563eb" />
+                                            
+                                            <text x="30" y="135" fontSize="14" fill="#475569" fontWeight="bold">เหล็กเส้นที่ 2 (ทาบต่อจุดเดียวกัน 100%)</text>
+                                            <RebarLine x1={40} x2={380} y={150} color="#334155" />
+                                            <RebarLine x1={120} x2={460} y={170} color="#2563eb" />
+                                            
+                                            <path d="M120 210 H380" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="6 4"/>
+                                            <path d="M120 200 V220 M380 200 V220" stroke="#ef4444" strokeWidth="2.5"/>
+                                            <path d="M128 204 L120 210 L128 216 M372 204 L380 210 L372 216" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <text x="250" y="228" fontSize="16" fill="#ef4444" fontWeight="bold" textAnchor="middle">ระยะทาบ 1.3 L<tspan baselineShift="sub" fontSize="12" dx="-2">d</tspan> (ยาวกว่าแบบ A)</text>
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-white border border-slate-200 p-5 rounded-xl text-sm text-slate-600 shadow-sm flex items-start gap-3">
+                                    <div className="text-xl">💡</div>
+                                    <p className="leading-relaxed"><strong>ข้อแนะนำทางปฏิบัติ:</strong> วิศวกรผู้ออกแบบส่วนใหญ่มักกำหนดให้ใช้ <strong>Class B (1.3 L<sub>d</sub>)</strong> เป็นมาตรฐานทั่วไปในแบบก่อสร้าง เพื่อความปลอดภัยสูงสุดและหลีกเลี่ยงความผิดพลาดในการควบคุมงานหน้าไซต์ เนื่องจากบ่อยครั้งผู้รับเหมาอาจไม่สามารถจัดเหล็กสลับฟันปลา (Stagger) ได้เป๊ะ 100% ตามที่คาดหวังไว้</p>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MasterCalculator />);
+    </script>
+</body>
+</html>
