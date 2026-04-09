@@ -28,9 +28,6 @@
         .tab-inactive:hover { background-color: #f8fafc; color: #475569; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        /* ซ่อน Scrollbar สำหรับแถบเมนูด้านบนบนมือถือ */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
@@ -320,32 +317,19 @@
             };
 
             const tabs = [
-            { id: "summary", label: "ตารางสรุปผล", icon: <Icons.Table/> },
-            { id: "ldh", label: <span>L<sub>dh</sub> (งอรับแรงดึง)</span> },
-            { id: "ld", label: <span>L<sub>d</sub> (ตรงรับแรงดึง)</span> },
-            { id: "ldc", label: <span>L<sub>dc</sub> (ตรงรับแรงอัด)</span> },
-            { id: "lst", label: <span>L<sub>st</sub> (ทาบแรงดึง)</span> },
-            { id: "lsc", label: <span>L<sub>sc</sub> (ทาบแรงอัด)</span> },
-            { id: "var_info", label: "คู่มือ & ตัวแปร", icon: <Icons.HelpCircle/> },
-            { id: "hook_info", label: "รูปอธิบายการงอขอ", icon: <Icons.Hook/> },
-            { id: "splice_info", label: "รูปอธิบายการทาบ", icon: <Icons.Book/> }
-        ];
+                { id: "summary", label: "ตารางสรุปผล", icon: <Icons.Table/> },
+                { id: "ldh", label: <span>L<sub>dh</sub> (งอรับแรงดึง)</span> },
+                { id: "ld", label: <span>L<sub>d</sub> (ตรงรับแรงดึง)</span> },
+                { id: "ldc", label: <span>L<sub>dc</sub> (ตรงรับแรงอัด)</span> },
+                { id: "lst", label: <span>L<sub>st</sub> (ทาบแรงดึง)</span> },
+                { id: "lsc", label: <span>L<sub>sc</sub> (ทาบแรงอัด)</span> },
+                { id: "var_info", label: "คู่มือ & ตัวแปร", icon: <Icons.HelpCircle/> },
+                { id: "hook_info", label: "รูปอธิบายการงอขอ", icon: <Icons.Hook/> },
+                { id: "splice_info", label: "รูปอธิบายการทาบ", icon: <Icons.Book/> }
+            ];
 
-        return (
-            <div className="min-h-screen flex flex-col">
-                {/* Global App Navigation (เมนูสลับโปรแกรม) */}
-                <div className="bg-slate-900 shadow-md sticky top-0 z-50">
-                    <div className="max-w-5xl mx-auto flex overflow-x-auto hide-scrollbar">
-                        <a href="https://warotninkuha-rgb.github.io/Development-length-ACI-318-25-/" className="px-6 py-3.5 text-sm font-bold text-white border-b-4 border-blue-500 bg-slate-800 whitespace-nowrap transition-colors flex items-center gap-2">
-                            1. โปรแกรมคำนวณระยะฝังและทาบเหล็ก
-                        </a>
-                        <a href="page2.html" className="px-6 py-3.5 text-sm font-medium text-slate-400 border-b-4 border-transparent hover:text-slate-100 hover:bg-slate-800/50 whitespace-nowrap transition-colors flex items-center gap-2">
-                            2. โปรแกรมคำนวณระยะรางระบายน้ำ
-                        </a>
-                    </div>
-                </div>
-
-                <div>
+            return (
+                <div className="min-h-screen">
                     {/* Add to Home Screen Banner */}
                     {showInstallBanner && (
                         <div className="bg-blue-900 text-white p-4 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
@@ -1226,7 +1210,6 @@
 
                         </div>
                     </div>
-                </div>
                 </div>
             );
         }
