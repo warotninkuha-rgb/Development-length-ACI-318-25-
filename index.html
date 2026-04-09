@@ -187,7 +187,33 @@
             // Lsc Specific State
             const [lscConfine, setLscConfine] = useState("1.0");
 
-            // 
+            // --- ฟังก์ชันคำนวณทั้งหมดสำหรับนำไปใช้ทั้งในตารางสรุปและแท็บวิธีทำ ---
+            const calculateAllForBar = (sizeInput, useTopBarForLd = false) => {
+                const db = REBAR_DATA[sizeInput].db;
+                const psis_ldh = REBAR_DATA[sizeInput].psis_ldh;
+                const psis_ld = REBAR_DATA[sizeInput].psis_ld;
+                const isSmallBar = db <= 36;
+                
+                const numFy = parseFloat(fy) || 0;
+                const numFc = parseFloat(fc) || 0;
+                const isFcLimited = numFc > 700;
+                const effectiveFc = isFcLimited ? 700 : numFc;
+                const sqrtFc = Math.sqrt(effectiveFc);
+                const lambda = isLightweight ? 0.75 : 1.0;
+
+                // Ldh
+                const psie_ldh = isEpoxy ? 1.2 : 1.0;
+                const psicc = (hasCoverCond && isSmallBar) ? 0.7 : 1.0;
+                const psir_ldh = (hasConfiningLdh && isSmallBar) ? 0.8 : 1.0;
+                const ldh1 = (0.075 * numFy * psie_ldh * psis_ldh * psicc * psir_ldh * db) / (lambda * sqrtFc);
+                const ldh = Math.max(ldh1, 8 * db, 150.0);
+
+                // Confinement (for Ld)
+                const c1 = parseFloat(clearCover) + (db / 2);
+                const c2 = (parseFloat(clearSpacing) / 2) + (db / 2);
+                const cb = Math.min(c1, c2);
+                let ktr = 0;
+                let atrArea = 0;
                 if (useKtr) {
                     const atrDb = REBAR_DATA[atrSize] ? REBAR_DATA[atrSize].db : parseFloat(atrSize);
                     atrArea = parseFloat(atrLegs) * (Math.PI * Math.pow(atrDb, 2) / 4);
@@ -1193,4 +1219,3 @@
     </script>
 </body>
 </html>
-
