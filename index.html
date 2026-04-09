@@ -37,6 +37,7 @@
         const { useState, useMemo, useEffect } = React;
 
         const REBAR_DATA = {
+            "9": { db: 9, psis_ldh: 1.0, psis_ld: 0.8 },
             "10": { db: 10, psis_ldh: 1.0, psis_ld: 0.8 },
             "12": { db: 12, psis_ldh: 1.0, psis_ld: 0.8 },
             "16": { db: 16, psis_ldh: 1.0, psis_ld: 0.8 },
@@ -56,7 +57,8 @@
             HelpCircle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
             ShareIOS: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>,
             DotsAndroid: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>,
-            Hook: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 18a4.6 4.4 0 0 1 0-9h10a4.5 4.5 0 0 1 0 9h-2"></path><polyline points="12 21 9 18 12 15"></polyline></svg>
+            Hook: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 18a4.6 4.4 0 0 1 0-9h10a4.5 4.5 0 0 1 0 9h-2"></path><polyline points="12 21 9 18 12 15"></polyline></svg>,
+            Table: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="9" x2="9" y2="21"></line><line x1="15" y1="9" x2="15" y2="21"></line></svg>
         };
 
         // App Icon Component
@@ -153,12 +155,14 @@
             }, []);
 
             // Global State
-            const [activeTab, setActiveTab] = useState("var_info");
+            const [activeTab, setActiveTab] = useState("summary"); // เปลี่ยนหน้าเริ่มต้นเป็นตารางสรุป
             const [fy, setFy] = useState(4000); 
             const [fc, setFc] = useState(240);  
-            const [barSize, setBarSize] = useState("12"); 
             const [isLightweight, setIsLightweight] = useState(false);
             
+            // Bar Size state (ใช้เฉพาะในหน้าแท็บวิธีทำแบบละเอียด)
+            const [barSize, setBarSize] = useState("12"); 
+
             // Ldh Specific State
             const [isEpoxy, setIsEpoxy] = useState(false);
             const [hasCoverCond, setHasCoverCond] = useState(false);
@@ -183,28 +187,28 @@
             // Lsc Specific State
             const [lscConfine, setLscConfine] = useState("1.0");
 
-            // Shared Computations
-            const db = REBAR_DATA[barSize].db;
-            const lambda = isLightweight ? 0.75 : 1.0;
-            const numFy = parseFloat(fy) || 0;
-            const numFc = parseFloat(fc) || 0;
-            const isFcLimited = numFc > 700;
-            const effectiveFc = isFcLimited ? 700 : numFc;
-            const sqrtFcLimit = Math.sqrt(effectiveFc);
-            const isSmallBarLdh = db <= 36;
+            // --- ฟังก์ชันคำนวณทั้งหมดสำหรับนำไปใช้ทั้งในตารางสรุปและแท็บวิธีทำ ---
+            const calculateAllForBar = (sizeInput, useTopBarForLd = false) => {
+                const db = REBAR_DATA[sizeInput].db;
+                const psis_ldh = REBAR_DATA[sizeInput].psis_ldh;
+                const psis_ld = REBAR_DATA[sizeInput].psis_ld;
+                const isSmallBar = db <= 36;
+                
+                const numFy = parseFloat(fy) || 0;
+                const numFc = parseFloat(fc) || 0;
+                const isFcLimited = numFc > 700;
+                const effectiveFc = isFcLimited ? 700 : numFc;
+                const sqrtFc = Math.sqrt(effectiveFc);
+                const lambda = isLightweight ? 0.75 : 1.0;
 
-            const calcLdh = useMemo(() => {
-                const psie = isEpoxy ? 1.2 : 1.0;
-                const psis = REBAR_DATA[barSize].psis_ldh;
-                const psicc = (hasCoverCond && isSmallBarLdh) ? 0.7 : 1.0;
-                const psir = (hasConfiningLdh && isSmallBarLdh) ? 0.8 : 1.0;
-                const ldh1 = (0.075 * numFy * psie * psis * psicc * psir * db) / (lambda * sqrtFcLimit);
-                const ldh2 = 8 * db;
-                const ldh3 = 150.0;
-                return { ldh1, ldh2, ldh3, final: Math.max(ldh1, ldh2, ldh3), psie, psis, psicc, psir };
-            }, [numFy, lambda, sqrtFcLimit, db, isEpoxy, hasCoverCond, hasConfiningLdh, isSmallBarLdh, barSize]);
+                // Ldh
+                const psie_ldh = isEpoxy ? 1.2 : 1.0;
+                const psicc = (hasCoverCond && isSmallBar) ? 0.7 : 1.0;
+                const psir_ldh = (hasConfiningLdh && isSmallBar) ? 0.8 : 1.0;
+                const ldh1 = (0.075 * numFy * psie_ldh * psis_ldh * psicc * psir_ldh * db) / (lambda * sqrtFc);
+                const ldh = Math.max(ldh1, 8 * db, 150.0);
 
-            const calcCbKtr = useMemo(() => {
+                // Confinement (for Ld)
                 const c1 = parseFloat(clearCover) + (db / 2);
                 const c2 = (parseFloat(clearSpacing) / 2) + (db / 2);
                 const cb = Math.min(c1, c2);
@@ -215,70 +219,117 @@
                     atrArea = parseFloat(atrLegs) * (Math.PI * Math.pow(atrDb, 2) / 4);
                     ktr = (40 * atrArea) / ((parseFloat(sTie) || 1) * (parseFloat(nBars) || 1));
                 }
-                const confinementVal = (cb + ktr) / db;
-                return { c1, c2, cb, atrArea, ktr, confinementVal, confinement: Math.min(confinementVal, 2.5) };
-            }, [clearCover, clearSpacing, db, useKtr, atrSize, atrLegs, sTie, nBars]);
+                const confinement = Math.min((cb + ktr) / db, 2.5);
 
-            const calcLd = useMemo(() => {
-                const psit = isTopBar ? 1.3 : 1.0;
-                let psie = isEpoxy ? 1.5 : 1.0; 
-                if(isTopBar && isEpoxy) psie = 1.307; 
-                else if (isEpoxy) psie = 1.2;
-                const psis = REBAR_DATA[barSize].psis_ld;
-                const confinement = calcCbKtr.confinement; 
-                const ld_base = (0.285 * numFy * psit * psie * psis * db) / (lambda * sqrtFcLimit * confinement);
-                return { ld_base, final: Math.max(ld_base, 300.0), psit, psie, psis, confinement };
-            }, [numFy, lambda, sqrtFcLimit, db, isTopBar, isEpoxy, calcCbKtr.confinement, barSize]);
+                // Ld Base function
+                const computeLd = (isTop) => {
+                    let psie_ld = isEpoxy ? 1.2 : 1.0;
+                    let psit = isTop ? 1.3 : 1.0;
+                    if (isTop && isEpoxy) psie_ld = 1.307; // (1.3 * 1.307 ≈ 1.7)
+                    const ld1 = (0.285 * numFy * psit * psie_ld * psis_ld * db) / (lambda * sqrtFc * confinement);
+                    return { base: ld1, final: Math.max(ld1, 300.0), psit, psie: psie_ld };
+                };
 
-            const calcLdc = useMemo(() => {
-                const psir = hasConfiningLdc ? 0.75 : 1.0;
-                const ldc1 = (0.075 * numFy * psir * db) / (lambda * sqrtFcLimit); 
-                const ldc2 = 0.00427 * numFy * psir * db;
-                return { ldc1, ldc2, ldc3: 200.0, final: Math.max(ldc1, ldc2, 200.0), psir };
-            }, [numFy, lambda, sqrtFcLimit, db, hasConfiningLdc]);
+                const ldbData = computeLd(false);
+                const ldb = ldbData.final;
 
-            const calcLst = useMemo(() => {
+                const ldtData = computeLd(true);
+                const ldt = ldtData.final;
+
+                // Ld for detailed tab uses the toggle 'isTopBar'
+                const ldDetailed = useTopBarForLd ? ldtData : ldbData;
+
+                // Ldc
+                const psir_ldc = hasConfiningLdc ? 0.75 : 1.0;
+                const ldc1 = (0.075 * numFy * psir_ldc * db) / (lambda * sqrtFc);
+                const ldc2 = 0.00427 * numFy * psir_ldc * db;
+                const ldc = Math.max(ldc1, ldc2, 200.0);
+
+                // Lst (Class B of Ld Bottom)
                 const mult = spliceClass === "A" ? 1.0 : 1.3;
-                const lst_base = mult * calcLd.final;
-                return { lst_base, final: Math.max(lst_base, 300.0), mult };
-            }, [spliceClass, calcLd.final]);
+                const lst = Math.max(mult * ldb, 300.0);
 
-            const calcLsc = useMemo(() => {
-                const lsc_ksc_base = numFy <= 4280 ? (0.007 * numFy * db) : ((0.0127 * numFy - 24) * db); 
+                // Lsc
+                const lsc_ksc_base = numFy <= 4280 ? (0.007 * numFy * db) : ((0.0127 * numFy - 24) * db);
                 const fc_mod = numFc < 210 ? 1.333 : 1.0;
                 const confine_mod = parseFloat(lscConfine);
                 const lsc_1 = lsc_ksc_base * fc_mod * confine_mod;
-                return { lsc_ksc_base, fc_mod, confine_mod, lsc_1, final: Math.max(lsc_1, 300.0) };
-            }, [numFy, numFc, db, lscConfine]);
+                const lsc = Math.max(lsc_1, 300.0);
+
+                // Hooks
+                let hookD = 4 * db;
+                if (db >= 20 && db <= 25) hookD = 6 * db;
+                else if (db >= 28) hookD = 8 * db;
+
+                let lext90 = 12 * db;
+                if (db <= 16) lext90 = Math.max(6 * db, 75);
+
+                let lext180 = Math.max(4 * db, 65);
+
+                return {
+                    sizeLabel: sizeInput === "9" ? "RB9" : `DB${sizeInput}`,
+                    db, isSmallBar, isFcLimited, sqrtFc,
+                    
+                    // Values for detailed tabs (Raw mm values)
+                    ldh_raw: ldh1, ldh_final: ldh, psie_ldh, psicc, psir_ldh,
+                    ld_raw: ldDetailed.base, ld_final: ldDetailed.final, psit: ldDetailed.psit, psie_ld: ldDetailed.psie, confinement, c1, c2, cb, ktr, atrArea,
+                    ldc1_raw: ldc1, ldc2_raw: ldc2, ldc_final: ldc, psir_ldc,
+                    lst_base: mult * ldDetailed.final, lst_final: Math.max(mult * ldDetailed.final, 300.0), lst_mult: mult,
+                    lsc_1_raw: lsc_1, lsc_final: lsc, lsc_ksc_base, fc_mod, confine_mod,
+                    
+                    // Converted to cm for Summary Table
+                    ldh_cm: ldh / 10,
+                    ldb_cm: ldb / 10,
+                    ldt_cm: ldt / 10,
+                    ldc_cm: ldc / 10,
+                    lst_cm: lst / 10,
+                    lsc_cm: lsc / 10,
+                    hookD_cm: hookD / 10,
+                    lext90_cm: lext90 / 10,
+                    lext180_cm: lext180 / 10,
+                    
+                    // Multipliers for Summary Table
+                    ldh_m: (ldh / db).toFixed(0),
+                    ldb_m: (ldb / db).toFixed(0),
+                    ldt_m: (ldt / db).toFixed(0),
+                    ldc_m: (ldc / db).toFixed(0),
+                    lst_m: (lst / db).toFixed(0),
+                    lsc_m: (lsc / db).toFixed(0),
+                };
+            };
+
+            // เรียกใช้ฟังก์ชันดึงค่าของขนาดเหล็กที่เลือกในแท็บปัจจุบัน
+            const currentCalc = calculateAllForBar(barSize, isTopBar);
 
             const ResultBox = ({ title, symbol, value }) => {
-            const cmValue = isNaN(value) ? 0 : value / 10;
-            return (
-                <div className="bg-blue-600 px-6 py-8 rounded-2xl shadow-lg text-white text-center mt-6 relative overflow-hidden flex flex-col items-center justify-center">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <h2 className="text-xl font-medium text-blue-100 mb-2 relative z-10">{title} ({symbol})</h2>
-                    <div className="flex items-baseline justify-center gap-3 relative z-10 mb-1">
-                        <div className="text-5xl md:text-7xl font-bold tracking-tight leading-none">{cmValue.toFixed(1)}</div>
-                        <div className="text-2xl md:text-3xl font-light text-blue-200">ซม.</div>
+                const cmValue = isNaN(value) ? 0 : value / 10;
+                return (
+                    <div className="bg-blue-600 px-6 py-8 rounded-2xl shadow-lg text-white text-center mt-6 relative overflow-hidden flex flex-col items-center justify-center">
+                        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
+                        <h2 className="text-xl font-medium text-blue-100 mb-2 relative z-10">{title} ({symbol})</h2>
+                        <div className="flex items-baseline justify-center gap-3 relative z-10 mb-1">
+                            <div className="text-5xl md:text-7xl font-bold tracking-tight leading-none">{cmValue.toFixed(1)}</div>
+                            <div className="text-2xl md:text-3xl font-light text-blue-200">ซม.</div>
+                        </div>
+                        <div className="text-blue-200 text-sm relative z-10">(เท่ากับ {isNaN(value) ? "0" : value.toFixed(0)} มม.)</div>
                     </div>
-                    <div className="text-blue-200 text-sm relative z-10">(เท่ากับ {isNaN(value) ? "0" : value.toFixed(0)} มม.)</div>
-                </div>
-            );
-        };
+                );
+            };
 
-        const tabs = [
-            { id: "ldh", label: <span>L<sub>dh</sub> (งอรับแรงดึง)</span> },
-            { id: "ld", label: <span>L<sub>d</sub> (ตรงรับแรงดึง)</span> },
-            { id: "ldc", label: <span>L<sub>dc</sub> (ตรงรับแรงอัด)</span> },
-            { id: "lst", label: <span>L<sub>st</sub> (ทาบแรงดึง)</span> },
-            { id: "lsc", label: <span>L<sub>sc</sub> (ทาบแรงอัด)</span> },
-            { id: "var_info", label: "คู่มือ & ตัวแปร", icon: <Icons.HelpCircle/> },
-            { id: "hook_info", label: "รูปอธิบายการงอขอ", icon: <Icons.Hook/> },
-            { id: "splice_info", label: "รูปอธิบายการทาบ", icon: <Icons.Book/> }
-        ];
+            const tabs = [
+                { id: "summary", label: "ตารางสรุปผล", icon: <Icons.Table/> },
+                { id: "ldh", label: <span>L<sub>dh</sub> (งอรับแรงดึง)</span> },
+                { id: "ld", label: <span>L<sub>d</sub> (ตรงรับแรงดึง)</span> },
+                { id: "ldc", label: <span>L<sub>dc</sub> (ตรงรับแรงอัด)</span> },
+                { id: "lst", label: <span>L<sub>st</sub> (ทาบแรงดึง)</span> },
+                { id: "lsc", label: <span>L<sub>sc</sub> (ทาบแรงอัด)</span> },
+                { id: "var_info", label: "คู่มือ & ตัวแปร", icon: <Icons.HelpCircle/> },
+                { id: "hook_info", label: "รูปอธิบายการงอขอ", icon: <Icons.Hook/> },
+                { id: "splice_info", label: "รูปอธิบายการทาบ", icon: <Icons.Book/> }
+            ];
 
-        return (
-            <div className="min-h-screen">
+            return (
+                <div className="min-h-screen">
                     {/* Add to Home Screen Banner */}
                     {showInstallBanner && (
                         <div className="bg-blue-900 text-white p-4 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
@@ -308,26 +359,18 @@
                             <p className="text-slate-500">หน่วย Metric (f<sub>y</sub> , f'<sub>c</sub> = ksc | ระยะ = มม. / ซม.)</p>
                         </div>
 
-                        {/* Global Inputs */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-5">
+                        {/* Global Inputs (นำตัวเลือกเหล็กออก เหลือแค่ 3 ค่าหลัก) */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">กำลังคราก f<sub>y</sub> (ksc)</label>
-                                <input type="number" value={fy} onChange={(e) => setFy(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50" />
+                                <input type="number" value={fy} onChange={(e) => setFy(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50" />
                             </div>
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">กำลังอัด f'<sub>c</sub> (ksc)</label>
-                                <input type="number" value={fc} onChange={(e) => setFc(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">ขนาดเหล็ก (DB)</label>
-                                <select value={barSize} onChange={(e) => setBarSize(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm">
-                                    {Object.keys(REBAR_DATA).map(size => (
-                                        <option key={size} value={size}>DB{size} (db={REBAR_DATA[size].db}mm)</option>
-                                    ))}
-                                </select>
+                                <input type="number" value={fc} onChange={(e) => setFc(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50" />
                             </div>
                             <div className="flex flex-col justify-end pb-2">
-                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                                <label className="flex items-center gap-3 cursor-pointer bg-slate-50 p-3 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors h-[50px]">
                                     <input type="checkbox" checked={isLightweight} onChange={(e) => setIsLightweight(e.target.checked)} className="w-5 h-5 text-blue-600 rounded" />
                                     <span className="text-sm font-medium text-slate-700">คอนกรีตมวลเบา (λ=0.75)</span>
                                 </label>
@@ -350,6 +393,129 @@
                         {/* Tab Contents */}
                         <div className="bg-white p-6 rounded-b-2xl rounded-tr-2xl shadow-sm border border-slate-200 border-t-0 -mt-6 pt-8">
                             
+                            {/* การเลือกขนาดเหล็ก (แสดงเฉพาะในแท็บคำนวณแบบละเอียด) */}
+                            {['ldh', 'ld', 'ldc', 'lst', 'lsc'].includes(activeTab) && (
+                                <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between flex-wrap gap-4 animate-fade-in">
+                                    <div className="font-semibold text-blue-800">เลือกขนาดเหล็กเพื่อดูวิธีคำนวณแบบละเอียด:</div>
+                                    <select 
+                                        value={barSize}
+                                        onChange={(e) => setBarSize(e.target.value)}
+                                        className="p-2.5 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white font-bold text-blue-700 w-full md:w-auto shadow-sm"
+                                    >
+                                        {Object.keys(REBAR_DATA).map(size => (
+                                            <option key={size} value={size}>{size === "9" ? "RB9" : `DB${size}`} (db = {REBAR_DATA[size].db} mm)</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Tab: Summary Table */}
+                            <div className={`tab-content space-y-6 animate-fade-in ${activeTab === 'summary' ? 'active' : ''}`}>
+                                <div className="text-center mb-6">
+                                    <h3 className="text-2xl font-bold text-slate-800">ตารางสรุปผลระยะฝังและระยะทาบเหล็กเสริม</h3>
+                                    <p className="text-slate-500 mt-2">ตารางนี้คำนวณแบบ Real-time ตามค่ากำลังวัสดุ (f<sub>y</sub>, f'<sub>c</sub>) ด้านบน และเงื่อนไขต่างๆ ที่ตั้งค่าไว้ในแต่ละหน้าแท็บ</p>
+                                </div>
+
+                                <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+                                    <table className="w-full text-sm text-center">
+                                        <thead className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                                            <tr>
+                                                <th rowSpan="2" className="p-3 border-r border-slate-200 align-middle whitespace-nowrap">ขนาด<br/>เหล็ก</th>
+                                                <th colSpan="2" className="p-3 border-r border-slate-200 border-b border-slate-200">L<sub>d</sub> รับแรงดึง (ซม.)</th>
+                                                <th rowSpan="2" className="p-3 border-r border-slate-200 align-middle">L<sub>dh</sub><br/>(ซม.)</th>
+                                                <th rowSpan="2" className="p-3 border-r border-slate-200 align-middle">L<sub>dc</sub><br/>(ซม.)</th>
+                                                <th rowSpan="2" className="p-3 border-r border-slate-200 align-middle">L<sub>st</sub><br/>(ซม.)</th>
+                                                <th rowSpan="2" className="p-3 border-r border-slate-200 align-middle">L<sub>sc</sub><br/>(ซม.)</th>
+                                                <th rowSpan="2" className="p-3 border-r border-slate-200 align-middle bg-blue-50">วงโค้ง D<br/>(ซม.)</th>
+                                                <th colSpan="2" className="p-3 border-b border-slate-200 bg-blue-50">ระยะยื่นปลายงอขอ l<sub>ext</sub> (ซม.)</th>
+                                            </tr>
+                                            <tr>
+                                                <th className="p-2 border-r border-slate-200 font-medium">เหล็กบน (T)</th>
+                                                <th className="p-2 border-r border-slate-200 font-medium">ทั่วไป (B)</th>
+                                                <th className="p-2 border-r border-slate-200 bg-blue-50 font-medium">ของอ 180°</th>
+                                                <th className="p-2 bg-blue-50 font-medium">ขอฉาก 90°</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 bg-white">
+                                            {Object.keys(REBAR_DATA).map(size => {
+                                                const data = calculateAllForBar(size, false);
+                                                return (
+                                                    <tr key={size} className="hover:bg-slate-50 transition-colors">
+                                                        <td className="p-3 border-r border-slate-100 font-bold text-slate-800">{data.sizeLabel}</td>
+                                                        
+                                                        {/* Ld(T) */}
+                                                        <td className="p-3 border-r border-slate-100">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                <span className="text-lg font-bold text-blue-700">{Math.ceil(data.ldt_cm)}</span>
+                                                                <span className="text-[10px] text-slate-400 bg-slate-100 px-1 rounded">{data.ldt_m}d<sub>b</sub></span>
+                                                            </div>
+                                                        </td>
+                                                        
+                                                        {/* Ld(B) */}
+                                                        <td className="p-3 border-r border-slate-100">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                <span className="text-lg font-bold text-blue-700">{Math.ceil(data.ldb_cm)}</span>
+                                                                <span className="text-[10px] text-slate-400 bg-slate-100 px-1 rounded">{data.ldb_m}d<sub>b</sub></span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Ldh */}
+                                                        <td className="p-3 border-r border-slate-100">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                <span className="text-lg font-bold text-blue-700">{Math.ceil(data.ldh_cm)}</span>
+                                                                <span className="text-[10px] text-slate-400 bg-slate-100 px-1 rounded">{data.ldh_m}d<sub>b</sub></span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Ldc */}
+                                                        <td className="p-3 border-r border-slate-100">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                <span className="text-lg font-bold text-slate-700">{Math.ceil(data.ldc_cm)}</span>
+                                                                <span className="text-[10px] text-slate-400 bg-slate-100 px-1 rounded">{data.ldc_m}d<sub>b</sub></span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Lst */}
+                                                        <td className="p-3 border-r border-slate-100">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                <span className="text-lg font-bold text-emerald-600">{Math.ceil(data.lst_cm)}</span>
+                                                                <span className="text-[10px] text-emerald-600/60 bg-emerald-50 px-1 rounded">{data.lst_m}d<sub>b</sub></span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Lsc */}
+                                                        <td className="p-3 border-r border-slate-100">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                <span className="text-lg font-bold text-emerald-600">{Math.ceil(data.lsc_cm)}</span>
+                                                                <span className="text-[10px] text-emerald-600/60 bg-emerald-50 px-1 rounded">{data.lsc_m}d<sub>b</sub></span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Hooks */}
+                                                        <td className="p-3 border-r border-slate-100 bg-blue-50/30">
+                                                            <div className="text-base font-semibold text-slate-700">{parseFloat(data.hookD_cm.toFixed(1))}</div>
+                                                        </td>
+                                                        <td className="p-3 border-r border-slate-100 bg-blue-50/30">
+                                                            <div className="text-base font-semibold text-slate-700">{parseFloat(data.lext180_cm.toFixed(1))}</div>
+                                                        </td>
+                                                        <td className="p-3 bg-blue-50/30">
+                                                            <div className="text-base font-semibold text-slate-700">{parseFloat(data.lext90_cm.toFixed(1))}</div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm text-slate-600 flex items-start gap-3">
+                                    <div className="text-xl">💡</div>
+                                    <p className="leading-relaxed">
+                                        <strong>คำแนะนำ:</strong> ค่าที่แสดงในตารางถูกปัดเศษขึ้นเป็นจำนวนเต็มเซนติเมตร เพื่อความสะดวกในการทำงานหน้างานจริง หากต้องการปรับเงื่อนไข (เช่น ระยะหุ้ม, ชนิดคอนกรีต, คลาสการทาบ) ให้กดเข้าไปที่แท็บของหัวข้อนั้นๆ เพื่อตั้งค่า จากนั้นตารางนี้จะอัปเดตตัวเลขให้ใหม่โดยอัตโนมัติ
+                                    </p>
+                                </div>
+                            </div>
+
                             {/* Tab: Ldh */}
                             <div className={`tab-content space-y-6 animate-fade-in ${activeTab === 'ldh' ? 'active' : ''}`}>
                                 <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2"><Icons.Settings/> เงื่อนไขตัวคูณปรับแก้ L<sub>dh</sub></h3>
@@ -361,15 +527,15 @@
                                             <div className="text-xs text-slate-500 mt-0.5">ψ<sub>e</sub> = 1.2</div>
                                         </div>
                                     </label>
-                                    <label className={`flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-colors ${!isSmallBarLdh ? 'opacity-50' : 'cursor-pointer hover:bg-slate-100'}`}>
-                                        <input type="checkbox" checked={hasCoverCond} onChange={(e) => setHasCoverCond(e.target.checked)} disabled={!isSmallBarLdh} className="mt-1 w-4 h-4 text-blue-600" />
+                                    <label className={`flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-colors ${!currentCalc.isSmallBar ? 'opacity-50' : 'cursor-pointer hover:bg-slate-100'}`}>
+                                        <input type="checkbox" checked={hasCoverCond} onChange={(e) => setHasCoverCond(e.target.checked)} disabled={!currentCalc.isSmallBar} className="mt-1 w-4 h-4 text-blue-600" />
                                         <div>
                                             <div className="font-medium text-slate-800">ระยะหุ้ม Cover ≥ 65 มม.</div>
                                             <div className="text-xs text-slate-500 mt-0.5">ψ<sub>cc</sub> = 0.7 (เฉพาะ DB36 ลงมา)</div>
                                         </div>
                                     </label>
-                                    <label className={`flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-colors ${!isSmallBarLdh ? 'opacity-50' : 'cursor-pointer hover:bg-slate-100'}`}>
-                                        <input type="checkbox" checked={hasConfiningLdh} onChange={(e) => setHasConfiningLdh(e.target.checked)} disabled={!isSmallBarLdh} className="mt-1 w-4 h-4 text-blue-600" />
+                                    <label className={`flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-colors ${!currentCalc.isSmallBar ? 'opacity-50' : 'cursor-pointer hover:bg-slate-100'}`}>
+                                        <input type="checkbox" checked={hasConfiningLdh} onChange={(e) => setHasConfiningLdh(e.target.checked)} disabled={!currentCalc.isSmallBar} className="mt-1 w-4 h-4 text-blue-600" />
                                         <div>
                                             <div className="font-medium text-slate-800">เหล็กปลอก s ≤ 3d<sub>b</sub></div>
                                             <div className="text-xs text-slate-500 mt-0.5">ψ<sub>r</sub> = 0.8 (เฉพาะ DB36 ลงมา)</div>
@@ -379,13 +545,13 @@
 
                                 <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
                                 <VarSummary>
-                                    <div>d<sub>b</sub> = {db} mm</div>
-                                    <div>λ = {lambda}</div>
-                                    <div>ψ<sub>e</sub> = {calcLdh.psie}</div>
-                                    <div>ψ<sub>s</sub> = {calcLdh.psis}</div>
-                                    <div>ψ<sub>cc</sub> = {calcLdh.psicc}</div>
-                                    <div>ψ<sub>r</sub> = {calcLdh.psir}</div>
-                                    <div className="col-span-2">f'<sub>c</sub> = {numFc} ksc {isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
+                                    <div>d<sub>b</sub> = {currentCalc.db} mm</div>
+                                    <div>λ = {isLightweight ? 0.75 : 1.0}</div>
+                                    <div>ψ<sub>e</sub> = {currentCalc.psie_ldh}</div>
+                                    <div>ψ<sub>s</sub> = {REBAR_DATA[barSize].psis_ldh}</div>
+                                    <div>ψ<sub>cc</sub> = {currentCalc.psicc}</div>
+                                    <div>ψ<sub>r</sub> = {currentCalc.psir_ldh}</div>
+                                    <div className="col-span-2">f'<sub>c</sub> = {fc || 0} ksc {currentCalc.isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
                                 </VarSummary>
                                 
                                 <EquationFraction 
@@ -395,17 +561,17 @@
                                     topFormula={<span>0.075 × f<sub>y</sub> × ψ<sub>e</sub> × ψ<sub>s</sub> × ψ<sub>cc</sub> × ψ<sub>r</sub></span>}
                                     bottomFormula={<span>λ × √f'<sub>c</sub></span>}
                                     multiplierText={<span>d<sub>b</sub></span>}
-                                    topValues={<span>0.075 × {fy || 0} × {calcLdh.psie} × {calcLdh.psis} × {calcLdh.psicc} × {calcLdh.psir}</span>}
-                                    bottomValues={<span>{lambda} × {sqrtFcLimit.toFixed(2)}</span>}
-                                    multiplierValue={db}
-                                    result={calcLdh.ldh1}
+                                    topValues={<span>0.075 × {fy || 0} × {currentCalc.psie_ldh} × {REBAR_DATA[barSize].psis_ldh} × {currentCalc.psicc} × {currentCalc.psir_ldh}</span>}
+                                    bottomValues={<span>{isLightweight ? 0.75 : 1.0} × {currentCalc.sqrtFc.toFixed(2)}</span>}
+                                    multiplierValue={currentCalc.db}
+                                    result={currentCalc.ldh_raw}
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <EquationFlat title="เงื่อนไขที่ 2: มาตรฐานขั้นต่ำ" reference="ACI 318-25: 25.4.3.1" symbol={<span>l<sub>dh2</sub></span>} formula={<span>8 × d<sub>b</sub></span>} values={`8 × ${db}`} result={calcLdh.ldh2} />
-                                    <EquationFlat title="เงื่อนไขที่ 3: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.3.1" symbol={<span>l<sub>dh3</sub></span>} formula="150 มม." result={calcLdh.ldh3} />
+                                    <EquationFlat title="เงื่อนไขที่ 2: มาตรฐานขั้นต่ำ" reference="ACI 318-25: 25.4.3.1" symbol={<span>l<sub>dh2</sub></span>} formula={<span>8 × d<sub>b</sub></span>} values={`8 × ${currentCalc.db}`} result={8 * currentCalc.db} />
+                                    <EquationFlat title="เงื่อนไขที่ 3: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.3.1" symbol={<span>l<sub>dh3</sub></span>} formula="150 มม." result={150} />
                                 </div>
 
-                                <ResultBox title="ระยะฝังเหล็กงอขอรับแรงดึง" symbol={<span>L<sub>dh</sub></span>} value={calcLdh.final} />
+                                <ResultBox title="ระยะฝังเหล็กงอขอรับแรงดึง" symbol={<span>L<sub>dh</sub></span>} value={currentCalc.ldh_final} />
                             </div>
 
                             {/* Tab: Ld */}
@@ -498,8 +664,8 @@
                                             title="1. หาค่า c_b" 
                                             symbol={<span>c<sub>b</sub></span>} 
                                             formula="min(c1, c2)" 
-                                            values={`min(${calcCbKtr.c1.toFixed(1)}, ${calcCbKtr.c2.toFixed(1)})`} 
-                                            result={calcCbKtr.cb} 
+                                            values={`min(${currentCalc.c1.toFixed(1)}, ${currentCalc.c2.toFixed(1)})`} 
+                                            result={currentCalc.cb} 
                                             reference="c1 = (Cover + db/2), c2 = (Spacing/2 + db/2)"
                                         />
                                         
@@ -509,9 +675,9 @@
                                                 symbol={<span>K<sub>tr</sub></span>}
                                                 topFormula={<span>40 × A<sub>tr</sub></span>}
                                                 bottomFormula={<span>s × n</span>}
-                                                topValues={<span>40 × {calcCbKtr.atrArea.toFixed(1)}</span>}
+                                                topValues={<span>40 × {currentCalc.atrArea.toFixed(1)}</span>}
                                                 bottomValues={<span>{sTie} × {nBars}</span>}
-                                                result={calcCbKtr.ktr}
+                                                result={currentCalc.ktr}
                                             />
                                         ) : (
                                             <EquationFlat 
@@ -527,24 +693,24 @@
                                         <div>
                                             <div className="font-semibold text-blue-900 mb-1">3. คำนวณและจำกัดค่าดัชนี</div>
                                             <div className="font-mono text-sm text-blue-800">
-                                                (c<sub>b</sub> + K<sub>tr</sub>) / d<sub>b</sub> = ({calcCbKtr.cb.toFixed(1)} + {calcCbKtr.ktr.toFixed(1)}) / {db}
+                                                (c<sub>b</sub> + K<sub>tr</sub>) / d<sub>b</sub> = ({currentCalc.cb.toFixed(1)} + {currentCalc.ktr.toFixed(1)}) / {currentCalc.db}
                                             </div>
                                         </div>
                                         <div className="mt-4 md:mt-0 bg-white px-8 py-3 rounded-xl shadow-sm border border-blue-100 flex flex-col items-center">
                                             <div className="text-xs text-slate-500 mb-1">นำไปใช้ในสมการ (≤ 2.5)</div>
-                                            <div className="text-3xl font-bold text-blue-700">{calcCbKtr.confinement.toFixed(2)}</div>
+                                            <div className="text-3xl font-bold text-blue-700">{currentCalc.confinement.toFixed(2)}</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <VarSummary>
-                                    <div>d<sub>b</sub> = {db} mm</div>
-                                    <div>λ = {lambda}</div>
-                                    <div>ψ<sub>t</sub> = {calcLd.psit}</div>
-                                    <div>ψ<sub>e</sub> = {calcLd.psie.toFixed(3)}</div>
-                                    <div>ψ<sub>s</sub> = {calcLd.psis}</div>
-                                    <div>Confinement = {calcCbKtr.confinement.toFixed(2)}</div>
-                                    <div className="col-span-2">f'<sub>c</sub> = {numFc} ksc {isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
+                                    <div>d<sub>b</sub> = {currentCalc.db} mm</div>
+                                    <div>λ = {isLightweight ? 0.75 : 1.0}</div>
+                                    <div>ψ<sub>t</sub> = {currentCalc.psit}</div>
+                                    <div>ψ<sub>e</sub> = {currentCalc.psie_ld.toFixed(3)}</div>
+                                    <div>ψ<sub>s</sub> = {REBAR_DATA[barSize].psis_ld}</div>
+                                    <div>Confinement = {currentCalc.confinement.toFixed(2)}</div>
+                                    <div className="col-span-2">f'<sub>c</sub> = {fc || 0} ksc {currentCalc.isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
                                 </VarSummary>
 
                                 <EquationFraction 
@@ -554,16 +720,16 @@
                                     topFormula={<span>0.285 × f<sub>y</sub> × ψ<sub>t</sub> × ψ<sub>e</sub> × ψ<sub>s</sub></span>}
                                     bottomFormula={<span>λ × √f'<sub>c</sub> × Confinement</span>}
                                     multiplierText={<span>d<sub>b</sub></span>}
-                                    topValues={<span>0.285 × {fy || 0} × {calcLd.psit} × {calcLd.psie.toFixed(3)} × {calcLd.psis}</span>}
-                                    bottomValues={<span>{lambda} × {sqrtFcLimit.toFixed(2)} × {calcCbKtr.confinement.toFixed(2)}</span>}
-                                    multiplierValue={db}
-                                    result={calcLd.ld_base}
+                                    topValues={<span>0.285 × {fy || 0} × {currentCalc.psit} × {currentCalc.psie_ld.toFixed(3)} × {REBAR_DATA[barSize].psis_ld}</span>}
+                                    bottomValues={<span>{isLightweight ? 0.75 : 1.0} × {currentCalc.sqrtFc.toFixed(2)} × {currentCalc.confinement.toFixed(2)}</span>}
+                                    multiplierValue={currentCalc.db}
+                                    result={currentCalc.ld_raw}
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <EquationFlat title="เงื่อนไขที่ 2: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.2.1" symbol={<span>l<sub>d_min</sub></span>} formula="300 มม." result={300} />
                                 </div>
 
-                                <ResultBox title="ระยะฝังเหล็กตรงรับแรงดึง" symbol={<span>L<sub>d</sub></span>} value={calcLd.final} />
+                                <ResultBox title="ระยะฝังเหล็กตรงรับแรงดึง" symbol={<span>L<sub>d</sub></span>} value={currentCalc.ld_final} />
                             </div>
 
                             {/* Tab: Ldc */}
@@ -581,10 +747,10 @@
 
                                 <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
                                 <VarSummary>
-                                    <div>d<sub>b</sub> = {db} mm</div>
-                                    <div>λ = {lambda}</div>
-                                    <div>ψ<sub>r</sub> = {calcLdc.psir}</div>
-                                    <div className="col-span-2">f'<sub>c</sub> = {numFc} ksc {isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
+                                    <div>d<sub>b</sub> = {currentCalc.db} mm</div>
+                                    <div>λ = {isLightweight ? 0.75 : 1.0}</div>
+                                    <div>ψ<sub>r</sub> = {currentCalc.psir_ldc}</div>
+                                    <div className="col-span-2">f'<sub>c</sub> = {fc || 0} ksc {currentCalc.isFcLimited && <span className="text-red-500 text-xs">(ถูกจำกัดค่า f'<sub>c</sub> ให้ไม่เกิน 700 ksc ในสมการ)</span>}</div>
                                 </VarSummary>
 
                                 <EquationFraction 
@@ -594,17 +760,17 @@
                                     topFormula={<span>0.075 × f<sub>y</sub> × ψ<sub>r</sub></span>}
                                     bottomFormula={<span>λ × √f'<sub>c</sub></span>}
                                     multiplierText={<span>d<sub>b</sub></span>}
-                                    topValues={<span>0.075 × {fy || 0} × {calcLdc.psir}</span>}
-                                    bottomValues={<span>{lambda} × {sqrtFcLimit.toFixed(2)}</span>}
-                                    multiplierValue={db}
-                                    result={calcLdc.ldc1}
+                                    topValues={<span>0.075 × {fy || 0} × {currentCalc.psir_ldc}</span>}
+                                    bottomValues={<span>{isLightweight ? 0.75 : 1.0} × {currentCalc.sqrtFc.toFixed(2)}</span>}
+                                    multiplierValue={currentCalc.db}
+                                    result={currentCalc.ldc1_raw}
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <EquationFlat title="เงื่อนไขที่ 2: มาตรฐานขั้นต่ำ" reference="ACI 318-25: 25.4.9.2" symbol={<span>l<sub>dc2</sub></span>} formula={<span>0.00427 × f<sub>y</sub> × ψ<sub>r</sub> × d<sub>b</sub></span>} values={`0.00427 × ${fy || 0} × ${calcLdc.psir} × ${db}`} result={calcLdc.ldc2} />
-                                    <EquationFlat title="เงื่อนไขที่ 3: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.9.1" symbol={<span>l<sub>dc3</sub></span>} formula="200 มม." result={calcLdc.ldc3} />
+                                    <EquationFlat title="เงื่อนไขที่ 2: มาตรฐานขั้นต่ำ" reference="ACI 318-25: 25.4.9.2" symbol={<span>l<sub>dc2</sub></span>} formula={<span>0.00427 × f<sub>y</sub> × ψ<sub>r</sub> × d<sub>b</sub></span>} values={`0.00427 × ${fy || 0} × ${currentCalc.psir_ldc} × ${currentCalc.db}`} result={currentCalc.ldc2_raw} />
+                                    <EquationFlat title="เงื่อนไขที่ 3: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.4.9.1" symbol={<span>l<sub>dc3</sub></span>} formula="200 มม." result={200} />
                                 </div>
 
-                                <ResultBox title="ระยะฝังเหล็กรับแรงอัด" symbol={<span>L<sub>dc</sub></span>} value={calcLdc.final} />
+                                <ResultBox title="ระยะฝังเหล็กรับแรงอัด" symbol={<span>L<sub>dc</sub></span>} value={currentCalc.ldc_final} />
                             </div>
 
                             {/* Tab: Lst */}
@@ -628,22 +794,22 @@
                                 </div>
 
                                 <div className="bg-slate-50 p-3 rounded-lg text-sm text-center text-slate-600 border border-slate-200">
-                                    ค่าอ้างอิง L<sub>d</sub> ปัจจุบัน = <span className="font-bold text-slate-800">{calcLd.final.toFixed(2)} มม.</span> (อิงการตั้งค่าแท็บ Ld)
+                                    ค่าอ้างอิง L<sub>d</sub> ปัจจุบัน = <span className="font-bold text-slate-800">{currentCalc.ld_final.toFixed(2)} มม.</span> (อิงการตั้งค่าแท็บ Ld ด้านบน)
                                 </div>
 
                                 <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
                                 <VarSummary>
                                     <div>Class = {spliceClass}</div>
-                                    <div>ตัวคูณ = {calcLst.mult}</div>
-                                    <div className="col-span-2">L<sub>d</sub> = {calcLd.final.toFixed(2)} mm</div>
+                                    <div>ตัวคูณ = {currentCalc.lst_mult}</div>
+                                    <div className="col-span-2">L<sub>d</sub> = {currentCalc.ld_final.toFixed(2)} mm</div>
                                 </VarSummary>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <EquationFlat title="เงื่อนไขที่ 1: คำนวณตาม Class" reference="ACI 318-25: 25.5.2.1" symbol={<span>l<sub>st1</sub></span>} formula={<span>ตัวคูณ × L<sub>d</sub></span>} values={`${calcLst.mult} × ${calcLd.final.toFixed(2)}`} result={calcLst.lst_base} />
+                                    <EquationFlat title="เงื่อนไขที่ 1: คำนวณตาม Class" reference="ACI 318-25: 25.5.2.1" symbol={<span>l<sub>st1</sub></span>} formula={<span>ตัวคูณ × L<sub>d</sub></span>} values={`${currentCalc.lst_mult} × ${currentCalc.ld_final.toFixed(2)}`} result={currentCalc.lst_base} />
                                     <EquationFlat title="เงื่อนไขที่ 2: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.5.2.1" symbol={<span>l<sub>st2</sub></span>} formula="300 มม." result={300} />
                                 </div>
 
-                                <ResultBox title="ระยะทาบเหล็กรับแรงดึง" symbol={<span>L<sub>st</sub></span>} value={calcLst.final} />
+                                <ResultBox title="ระยะทาบเหล็กรับแรงดึง" symbol={<span>L<sub>st</sub></span>} value={currentCalc.lst_final} />
                             </div>
 
                             {/* Tab: Lsc */}
@@ -651,7 +817,7 @@
                                 <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2"><Icons.Settings/> เงื่อนไข L<sub>sc</sub></h3>
                                 
                                 <div className="space-y-4">
-                                    {numFc < 210 && (
+                                    {fc < 210 && (
                                         <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm flex items-start gap-3">
                                             <div className="mt-0.5">⚠️</div>
                                             <div><strong>ข้อควรระวัง:</strong> กำลังอัดคอนกรีตต่ำกว่า 210 ksc ระยะทาบจะถูกคูณเพิ่ม 33% อัตโนมัติ (ตัวคูณ fc_mod = 1.33)</div>
@@ -669,10 +835,10 @@
 
                                 <h3 className="font-bold text-lg border-b pb-2 pt-4 flex items-center gap-2 text-blue-700"><Icons.Info/> วิธีการคำนวณ (Calculation Steps)</h3>
                                 <VarSummary>
-                                    <div>d<sub>b</sub> = {db} mm</div>
+                                    <div>d<sub>b</sub> = {currentCalc.db} mm</div>
                                     <div>f<sub>y</sub> = {fy || 0} ksc</div>
-                                    <div>ตัวคูณ f'<sub>c</sub> = {calcLsc.fc_mod.toFixed(3)}</div>
-                                    <div>ตัวคูณโอบรัด = {calcLsc.confine_mod}</div>
+                                    <div>ตัวคูณ f'<sub>c</sub> = {currentCalc.fc_mod.toFixed(3)}</div>
+                                    <div>ตัวคูณโอบรัด = {currentCalc.confine_mod}</div>
                                 </VarSummary>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -680,14 +846,14 @@
                                         title="เงื่อนไขที่ 1: คำนวณจากกำลังเหล็ก" 
                                         reference="ACI 318-25: 25.5.5.1"
                                         symbol={<span>l<sub>sc1</sub></span>} 
-                                        formula={numFy <= 4280 ? <span>(0.007 × f<sub>y</sub> × d<sub>b</sub>) × ตัวคูณ</span> : <span>((0.0127 × f<sub>y</sub> - 24) × d<sub>b</sub>) × ตัวคูณ</span>} 
-                                        values={numFy <= 4280 ? `(0.007 × ${fy || 0} × ${db}) × ${calcLsc.fc_mod.toFixed(2)} × ${calcLsc.confine_mod}` : `((0.0127 × ${fy || 0} - 24) × ${db}) × ${calcLsc.fc_mod.toFixed(2)} × ${calcLsc.confine_mod}`} 
-                                        result={calcLsc.lsc_1} 
+                                        formula={fy <= 4280 ? <span>(0.007 × f<sub>y</sub> × d<sub>b</sub>) × ตัวคูณ</span> : <span>((0.0127 × f<sub>y</sub> - 24) × d<sub>b</sub>) × ตัวคูณ</span>} 
+                                        values={fy <= 4280 ? `(0.007 × ${fy || 0} × ${currentCalc.db}) × ${currentCalc.fc_mod.toFixed(2)} × ${currentCalc.confine_mod}` : `((0.0127 × ${fy || 0} - 24) × ${currentCalc.db}) × ${currentCalc.fc_mod.toFixed(2)} × ${currentCalc.confine_mod}`} 
+                                        result={currentCalc.lsc_1_raw} 
                                     />
                                     <EquationFlat title="เงื่อนไขที่ 2: ความยาวขั้นต่ำ" reference="ACI 318-25: 25.5.5.1" symbol={<span>l<sub>sc2</sub></span>} formula="300 มม." result={300} />
                                 </div>
 
-                                <ResultBox title="ระยะทาบเหล็กรับแรงอัด" symbol={<span>L<sub>sc</sub></span>} value={calcLsc.final} />
+                                <ResultBox title="ระยะทาบเหล็กรับแรงอัด" symbol={<span>L<sub>sc</sub></span>} value={currentCalc.lsc_final} />
                             </div>
 
                             {/* Tab: Var Info */}
